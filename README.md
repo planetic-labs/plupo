@@ -49,6 +49,10 @@ These early preview builds use an ad-hoc signature, without an Apple Developer I
 
 Release downloads include a SHA-256 checksum. The app is built on GitHub for ARM64 without an Apple account or personal signing certificate. You can also build from source below.
 
+## Updates
+
+Use **Check for Updates…** in the menu bar or Preferences to find a newer release. Automatic checks are enabled by default and can be disabled in Preferences. A new version opens a release page only when you choose **View Release**; download its DMG and replace Plupo in Applications manually. Older versions without this feature need to be updated manually once.
+
 ## Build from Source
 
 You need an Apple Silicon Mac and Xcode with its macOS SDK and command-line tools selected. The project records Xcode 26.3 as its creation version and uses Swift 5 language mode. Compatibility with older Xcode versions has not been verified. There are no third-party package dependencies; the interface uses SwiftUI and AppKit.
@@ -107,7 +111,7 @@ The current code passes 26 import, drag, and export regression checks plus 9 win
 
 ## Privacy
 
-The current source contains no networking or analytics code. Shelf contents are held in memory, and preferences are stored locally in UserDefaults. Dragging text or images out creates temporary export files with restricted permissions; these are removed on normal exit or the next launch. A crash can leave them on disk until that next launch. Opening a link or file hands it to its associated application.
+Plupo checks GitHub for new releases automatically, at most once a day while running, and when you choose **Check for Updates…**. You can disable automatic checks in Preferences. Requests go to GitHub and include standard connection information such as your IP address; shelf contents and local file paths are never included. There is no analytics code. Shelf contents are held in memory, and preferences are stored locally in UserDefaults. Dragging text or images out creates temporary export files with restricted permissions; these are removed on normal exit or the next launch. A crash can leave them on disk until that next launch. Opening a link or file hands it to its associated application.
 
 Changing the bundle identifier does not migrate preferences from the previous identifier.
 

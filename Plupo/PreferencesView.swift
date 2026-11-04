@@ -10,6 +10,7 @@ import ServiceManagement
 
 struct PreferencesView: View {
     @EnvironmentObject var prefs: PreferencesStore
+    @ObservedObject private var updates = UpdateChecker.shared
     
     var body: some View {
         VStack(spacing: 0) {
@@ -102,6 +103,19 @@ struct PreferencesView: View {
                         .padding(.horizontal, 4)
                     }
                     
+                    GroupBox(label: Text("Updates").font(.system(size: 11, weight: .bold))) {
+                        VStack(alignment: .leading, spacing: 10) {
+                            Toggle("Automatically check for updates", isOn: $updates.automaticallyChecks)
+                            Text("Checks GitHub once a day. Updates are downloaded and installed manually.")
+                                .font(.caption).foregroundStyle(.secondary)
+                            Button(updates.isChecking ? "Checking…" : "Check for Updates…") {
+                                updates.check()
+                            }
+                            .disabled(updates.isChecking)
+                        }
+                        .padding(8)
+                    }
+
                     // Section 3: General System
                     GroupBox(label: Text("System").font(.system(size: 11, weight: .bold))) {
                         VStack(alignment: .leading, spacing: 10) {

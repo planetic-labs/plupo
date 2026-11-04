@@ -32,6 +32,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         // Initialize visibility subscriptions, including the saved mode.
         _ = WindowManager.shared
+        UpdateChecker.shared.start()
     }
     
     func applicationWillTerminate(_ notification: Notification) {
@@ -48,6 +49,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let menu = NSMenu()
         menu.addItem(NSMenuItem(title: "Toggle Shelf", action: #selector(toggleShelf), keyEquivalent: "y"))
         menu.addItem(NSMenuItem.separator())
+        menu.addItem(NSMenuItem(title: "Check for Updates…", action: #selector(checkForUpdates), keyEquivalent: ""))
         menu.addItem(NSMenuItem(title: "Preferences...", action: #selector(showPreferences), keyEquivalent: ","))
         menu.addItem(NSMenuItem.separator())
         menu.addItem(NSMenuItem(title: "Quit Plupo", action: #selector(quitApp), keyEquivalent: "q"))
@@ -64,6 +66,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         WindowManager.shared.showPreferencesWindow()
     }
     
+    @objc func checkForUpdates() {
+        UpdateChecker.shared.check()
+    }
+
     @objc func quitApp() {
         NSApp.terminate(nil)
     }

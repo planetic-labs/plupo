@@ -72,7 +72,7 @@ jobs:
           Download **Plupo-arm64.dmg**, open it, and drag Plupo into Applications.
           Requires **macOS 15.7 or later** and an **Apple Silicon Mac (M1 or newer)**.
 
-          This is an early preview. Features and behavior may change; see the README for known limitations.
+          See the README for known limitations.
 
           ### First launch
 
@@ -86,5 +86,5 @@ jobs:
           NOTES
           gh release create "$RELEASE_TAG" \
             distribution/Plupo-arm64.dmg distribution/SHA256SUMS.txt \
-            --verify-tag --title "Plupo $RELEASE_TAG — Early preview" \
-            --notes-file release-notes.md --latest
+            --verify-tag --title "Plupo $RELEASE_TAG" \
+            --generate-notes --notes-file release-notes.md --latest

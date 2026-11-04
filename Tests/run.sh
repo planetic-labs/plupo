@@ -18,3 +18,7 @@ done
 xcrun swiftc -parse-as-library -swift-version 5 -default-isolation MainActor \
   "$@" Tests/WindowRegressionTests.swift -o "$output_dir/window-tests"
 "$output_dir/window-tests"
+
+xcrun swiftc -parse-as-library -swift-version 5 -default-isolation MainActor \
+  Plupo/UpdateChecker.swift Tests/UpdateRegressionTests.swift -o "$output_dir/update-tests"
+"$output_dir/update-tests"
