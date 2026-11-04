@@ -26,6 +26,14 @@ After a successful push, **Build and release Plupo** builds the public ad-hoc-si
 
 The release script can be tested independently, without Xcode builds, network access, or real releases, using `python3 Tests/ReleaseScriptTests.py`. These checks use disposable local Git remotes and stub the app tests/build; they verify release orchestration rather than application functionality.
 
+## Automatic retries for unavailable GitHub Macs
+
+**Retry release runner failures** runs on Ubuntu after the release workflow finishes unsuccessfully. It retries only version-tag push runs whose **Build Apple Silicon DMG** job has no steps and carries GitHub's explicit hosted-runner acquisition failure annotation. The release job must have been skipped. Compilation, packaging, upload, publication, and ordinary cancellation failures are not retried.
+
+There are at most four attempts per run: the original plus three retries. Existing manual retries count toward this limit. A retry reuses the original tag and commit and restarts failed jobs and their dependents; it does not create a new version or change release assets. Once the limit is reached, the automation records the reason in its Actions summary and stops. No specific time of day or runner availability is guaranteed.
+
+The workflow reads trusted automation from the default branch, does not execute code or download artifacts from the failed run, and uses the built-in token with Actions write and Checks read permissions. No personal token or additional secrets are required. To inspect an existing run, use **Run workflow**, enter its numeric run ID, and leave **dry_run** enabled. Disable it only to retry an eligible completed failure. Active or successful runs are always skipped. Local logic tests: `python3 Tests/RetryRunnerFailureTests.py`.
+
 Releases are titled `Plupo vMAJOR.MINOR.PATCH`. GitHub automatically generates release notes with merged pull requests, contributors, and a link to the full comparison with the previous release. Installation and first-launch instructions appear above the generated notes. Use descriptive pull request titles so the change list is useful to users; direct commits can be reviewed through the comparison link.
 
 DMG packaging uses pinned Python tools (`dmgbuild`, `ds-store`, and `mac-alias`) in an isolated environment. These tools are not shipped with the app. The Finder background, icon positions, and window size are defined in `scripts/dmg/`. To regenerate the Retina background after editing its source, run `swift scripts/dmg/render-background.swift`. The app and Applications shortcut are the two visible items; the license and first-launch text remain on the disk as hidden support files.
