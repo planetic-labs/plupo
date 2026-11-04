@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f8f7fc">
+  <meta name="description" content="A little shelf for everything you're moving. Plupo is a free, open-source drag-and-drop shelf for Apple Silicon Macs.">
+  <meta property="og:title" content="Plupo — Drag. Drop. Keep moving.">
+  <meta property="og:description" content="Give your files a place to wait. A free, native drag-and-drop shelf for your Mac.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://planetic-labs.github.io/plupo/">
+  <meta property="og:image" content="https://planetic-labs.github.io/plupo/assets/plupo-icon.png">
+  <title>Plupo — Drag. Drop. Keep moving.</title>
+  <link rel="icon" type="image/png" href="assets/plupo-icon.png">
+  <link rel="apple-touch-icon" href="assets/plupo-icon.png">
+  <link rel="canonical" href="https://planetic-labs.github.io/plupo/">
+  <link rel="stylesheet" href="styles.css">
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <svg class="symbols" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>
+    <symbol id="arrow" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></symbol>
+    <symbol id="icon-download" viewBox="0 0 24 24"><path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5"/></symbol>
+    <symbol id="file" viewBox="0 0 24 24"><path d="M14 3H5v18h14V8l-5-5Zm0 0v5h5M8 13h8m-8 4h6"/></symbol>
+    <symbol id="link" viewBox="0 0 24 24"><path d="m10 13 4-4m-6 6-2 2a4 4 0 0 1-6-6l4-4a4 4 0 0 1 6 0m4 2 2-2a4 4 0 0 1 6 6l-4 4a4 4 0 0 1-6 0" transform="translate(1 1) scale(.9)"/></symbol>
+    <symbol id="lock" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3m-4 5v2"/></symbol>
+    <symbol id="eye" viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="shelf" viewBox="0 0 24 24"><path d="M3 13v7h18v-7M8 14V3h8v11m-5-5h2"/></symbol>
+  </defs></svg>
+  <header class="header wrap">
+    <a class="brand" href="./" aria-label="Plupo home"><img src="assets/plupo-icon.png" width="36" height="36" alt=""><span>Plupo</span></a>
+    <nav aria-label="Main navigation"><a href="#how-it-works">How it works</a><a href="https://github.com/planetic-labs/plupo" class="github-link">GitHub <span aria-hidden="true">↗</span></a><a class="nav-download" href="#download">Get Plupo <span aria-hidden="true">↓</span></a></nav>
+  </header>
+  <main id="main">
+    <section class="hero wrap" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <p class="eyebrow"><span class="status-dot"></span> A SMALL HELPING HAND FOR YOUR MAC</p>
+        <h1 id="hero-title">A little shelf.<br>A smoother <span class="accent-word">flow.<svg viewBox="0 0 220 18" aria-hidden="true"><path d="M4 13Q100 0 215 9"/></svg></span></h1>
+        <p class="intro">Give your files a place to wait.<br>Drop them into Plupo, find where they belong,<br class="desktop-break"> and keep moving.</p>
+        <div class="hero-actions"><a class="button primary" href="https://github.com/planetic-labs/plupo/releases/latest/download/Plupo-arm64.dmg"><svg><use href="#icon-download"/></svg>Download for Mac</a><span class="free-note">Free. Open source.<br>Yours to keep.</span></div>
+        <p class="requirements">Apple Silicon · macOS 15.7 or later</p>
+      </div>
+      <div class="hero-visual" aria-label="Illustration of files resting on Plupo">
+        <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div>
+        <div class="floating-file floating-one"><svg><use href="#file"/></svg><span>That one PDF</span></div>
+        <div class="floating-file floating-two"><span class="tiny-landscape"></span><span>A good idea.png</span></div>
+        <div class="icon-stage"><img class="hero-icon" src="assets/plupo-icon.png" alt="Plupo app icon: two files resting on a purple shelf" width="270" height="270"><span class="icon-shadow"></span></div>
+        <span class="handwritten">a place in between <svg viewBox="0 0 90 60" aria-hidden="true"><path d="M80 5Q90 47 12 44m12-13L10 44l18 8"/></svg></span>
+        <div class="visual-caption"><span class="sparkle" aria-hidden="true">✳</span> LESS WINDOW JUGGLING. MORE DOING.</div>
+      </div>
+    </section>
+    <div class="benefit-strip wrap"><span>Made for macOS</span><span class="strip-dot" aria-hidden="true">·</span><span>No accounts</span><span class="strip-dot" aria-hidden="true">·</span><span>No subscriptions</span><span class="strip-dot" aria-hidden="true">·</span><a href="https://github.com/planetic-labs/plupo/blob/main/LICENSE">MIT licensed <span aria-hidden="true">↗</span></a></div>
+    <section id="how-it-works" class="how-section wrap" aria-labelledby="how-title">
+      <div class="section-heading"><div><p class="eyebrow">YOUR FILES, ON THEIR WAY</p><h2 id="how-title">The space between<br>here and there.</h2></div><p>Some things just need a moment.<br>Plupo holds on while you find the right window.</p></div>
+      <div class="demo" data-step="0">
+        <div class="demo-top"><span><span class="live-dot"></span> A LITTLE WALKTHROUGH</span><button id="play-demo" type="button" aria-label="Play walkthrough">Play demo <span aria-hidden="true">▶</span></button></div>
+        <div class="demo-scene" aria-hidden="true">
+          <div class="finder-window"><div class="window-bar"><div class="traffic-lights"><i></i><i></i><i></i></div><span>Finder</span></div><div class="finder-body"><div class="finder-sidebar"><b>Favorites</b><span>Recents</span><span class="selected">Downloads</span><span>Documents</span></div><div class="finder-files"><div class="demo-file"><div class="paper-icon"><svg><use href="#file"/></svg><span>PDF</span></div><span>Proposal.pdf</span></div><div class="demo-file"><div class="landscape-icon"></div><span>Moodboard.png</span></div><div class="demo-file"><div class="folder-icon"></div><span>Project files</span></div></div></div></div>
+          <div class="demo-shelf"><div class="shelf-top"><img src="assets/plupo-icon.png" width="22" height="22" alt=""><span>Plupo</span><span>···</span></div><div class="shelf-drop"><svg><use href="#shelf"/></svg><span>Drop it here</span></div><div class="shelf-held"><div class="paper-icon"><svg><use href="#file"/></svg><span>PDF</span></div><span>Proposal.pdf</span></div></div>
+          <div class="destination"><div class="window-bar"><div class="traffic-lights"><i></i><i></i><i></i></div><span>Your project</span></div><div class="destination-body"><div class="folder-icon"></div><span>Ready for the next thing.</span><div class="delivered-file"><svg><use href="#file"/></svg> Proposal.pdf <span>✓</span></div></div></div>
+          <div class="moving-file"><svg><use href="#file"/></svg><span>Proposal.pdf</span><span class="cursor">↖</span></div>
+        </div>
+        <div class="demo-controls" role="group" aria-label="Walkthrough steps">
+          <button class="step active" type="button" data-go="0" aria-pressed="true"><span class="step-number">01</span><span><strong>Pick it up.</strong><small>Start dragging a file.</small></span></button>
+          <button class="step" type="button" data-go="1" aria-pressed="false"><span class="step-number">02</span><span><strong>Park it here.</strong><small>Plupo keeps it close.</small></span></button>
+          <button class="step" type="button" data-go="2" aria-pressed="false"><span class="step-number">03</span><span><strong>Keep moving.</strong><small>Drop it where it belongs.</small></span></button>
+        </div>
+        <p class="sr-only" id="demo-status" aria-live="polite">Step 1: Start dragging a file from Finder.</p>
+      </div>
+      <p class="demo-disclaimer">Illustrated walkthrough. Your original files stay in place while they’re on the shelf.</p>
+    </section>
+    <section class="features-section wrap" aria-labelledby="features-title">
+      <div class="section-heading"><div><p class="eyebrow">SMALL APP. THOUGHTFUL DETAILS.</p><h2 id="features-title">Just enough.<br>Right where you need it.</h2></div><p>A native Mac utility that fits into your day.<br>Nothing new to organize. Just a little less friction.</p></div>
+      <div class="features-grid">
+        <article><span class="feature-icon"><svg><use href="#link"/></svg></span><h3>More than files.</h3><p>Keep files, links, text, and images together. A handy stop for the things you're moving.</p></article>
+        <article><span class="feature-icon"><svg><use href="#lock"/></svg></span><h3>Keep the good stuff close.</h3><p>Lock an item to reuse it, or keep everything on the shelf after dragging it out.</p></article>
+        <article><span class="feature-icon"><svg><use href="#eye"/></svg></span><h3>A peek before you drop.</h3><p>Quick Look helps you check a file, image, or bit of text without losing your place.</p></article>
+        <article><span class="feature-icon"><svg><use href="#shelf"/></svg></span><h3>Your side of the screen.</h3><p>Left or right. Top, middle, or bottom. Put the shelf wherever it feels most natural.</p></article>
+      </div>
+      <div class="local-note"><span class="local-symbol" aria-hidden="true">⌘</span><div><h3>Your files are your business.</h3><p>No account, cloud storage, or analytics. The shelf stays on your Mac, and clears when you quit. See the <a href="https://github.com/planetic-labs/plupo#privacy">privacy notes</a> for update checks and temporary files.</p></div><span class="note-stamp">BUILT TO BE<br>A LITTLE UTILITY.</span></div>
+    </section>
+    <section id="download" class="download-section wrap" aria-labelledby="download-title">
+      <div class="download-panel"><img src="assets/plupo-icon.png" width="86" height="86" alt=""><p class="eyebrow">ONE LESS THING TO JUGGLE</p><h2 id="download-title">Make room for a<br>little more flow.</h2><p>Free, open source, and ready for your Mac.</p><a class="button primary" href="https://github.com/planetic-labs/plupo/releases/latest/download/Plupo-arm64.dmg"><svg><use href="#icon-download"/></svg>Download Plupo</a><p class="download-meta"><a id="latest-release" href="https://github.com/planetic-labs/plupo/releases/latest">Latest release</a><span>·</span>Apple Silicon<span>·</span>macOS 15.7+</p></div>
+      <div class="install-notes"><h3>A quick note on first launch.</h3><p>Plupo isn’t signed with an Apple Developer ID or notarized by Apple yet. macOS may block the first launch. If you trust the download, try opening the installed app once, then go to <strong>System Settings → Privacy & Security → Open Anyway</strong> and confirm.</p><a href="https://support.apple.com/102445">Read Apple’s first-launch guide <span aria-hidden="true">↗</span></a></div>
+    </section>
+    <section class="faq-section wrap" aria-labelledby="faq-title"><h2 id="faq-title">A few little details.</h2><div class="faq-list">
+      <details><summary>How do I install Plupo?</summary><p>Download the DMG, open it, and drag Plupo into Applications. Eject the disk image and open Plupo from Applications. You’ll find it in your menu bar. See the first-launch note above if macOS blocks it.</p></details>
+      <details><summary>Does Plupo move or back up my files?</summary><p>The shelf references your original files; adding them doesn’t move or back them up. Contents aren’t restored after quitting. When you drag an item into another app, that destination decides how to handle it.</p></details>
+      <details><summary>Will it work on my Mac?</summary><p>Plupo supports Apple Silicon Macs (M1 and newer) running macOS 15.7 or later. Drag-and-drop support depends on the source and destination apps. See the <a href="https://github.com/planetic-labs/plupo#project-status">README for current limitations</a>.</p></details>
+      <details><summary>How do I get updates?</summary><p>Download the newest DMG from <a href="https://github.com/planetic-labs/plupo/releases/latest">GitHub Releases</a> and replace Plupo in Applications. Release notes show what changed between versions.</p></details>
+      <details><summary>Can I help make it better?</summary><p>Absolutely. <a href="https://github.com/planetic-labs/plupo/issues">Report a bug or share an idea</a>, or explore the code on GitHub. Plupo is free software under the MIT license.</p></details>
+    </div></section>
+  </main>
+  <footer class="footer wrap"><a class="brand" href="./"><img src="assets/plupo-icon.png" width="30" height="30" alt=""><span>Plupo</span></a><p>Drag. Drop. Keep moving.</p><nav aria-label="Footer"><a href="https://github.com/planetic-labs/plupo">Source code ↗</a><a href="https://github.com/planetic-labs/plupo/releases">Releases</a><a href="https://github.com/planetic-labs/plupo/issues">Feedback</a></nav></footer>
+</body>
+</html>
