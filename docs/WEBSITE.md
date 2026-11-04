@@ -17,3 +17,13 @@ The **Publish Plupo website** workflow deploys only `website/` on pushes to `mai
 The download button uses GitHub's permanent latest-release asset link for `Plupo-arm64.dmg`. The latest version label comes from GitHub's public release API, with a generic link as a fallback if the request fails or is rate limited. Visitors' browsers contact GitHub for that metadata; the site does not send shelf contents or local file paths.
 
 To add a custom domain later, configure it in repository Settings → Pages, set the domain's DNS records, and update the canonical and social URLs in `website/index.html`. Keep HTTPS enabled.
+
+## Search visibility
+
+The page includes a descriptive title and description, a canonical URL, index/follow directives, Open Graph and Twitter card metadata, and SoftwareApplication JSON-LD. Structured data describes only verified product facts; no ratings or reviews are invented, and rich search results are not guaranteed. Main content and links are in HTML and do not depend on JavaScript.
+
+`website/sitemap.xml` lists the single canonical page. Sections are not separate URLs. Update the sitemap, canonical, social, and JSON-LD URLs together when changing the domain.
+
+For Google Search Console, add the URL-prefix property `https://planetic-labs.github.io/plupo/`, verify ownership using Google's supplied HTML file or meta tag, then submit `https://planetic-labs.github.io/plupo/sitemap.xml`. Bing Webmaster Tools supports a similar ownership-and-sitemap flow. These account-level steps are separate from deployment; publishing a sitemap does not submit it or guarantee indexing.
+
+This is a GitHub Pages project under `/plupo/`. Crawlers read robots.txt only at the host root (`https://planetic-labs.github.io/robots.txt`), so adding `/plupo/robots.txt` would have no effect. No project-level robots.txt is shipped. A root robots file, if added through a separate organization Pages site, must allow `/plupo/`; it can also advertise this sitemap.
