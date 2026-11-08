@@ -85,7 +85,7 @@ jobs:
           SOURCE_RUN_ID: ${{ inputs.artifact_run_id || github.run_id }}
         run: |
           [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo 'Invalid release tag'; exit 1; }
-          git fetch --no-tags origin "refs/tags/$RELEASE_TAG:refs/tags/$RELEASE_TAG"
+          git fetch --tags origin
           [[ "$SOURCE_RUN_ID" =~ ^[0-9]+$ ]] || { echo 'Invalid build run'; exit 1; }
           expected_commit=$(git rev-parse "$RELEASE_TAG^{commit}")
           built_commit=$(gh api "repos/$GH_REPO/actions/runs/$SOURCE_RUN_ID" --jq .head_sha)
@@ -109,7 +109,14 @@ jobs:
 
           The DMG and its SHA-256 checksum are built automatically on GitHub. No Apple account or personal signing certificate is used.
           NOTES
+          previous_tag=$(git tag --merged "$RELEASE_TAG" --sort=-version:refname | awk -v current="$RELEASE_TAG" '$0 != current && /^v[0-9]+\.[0-9]+\.[0-9]+$/ { print; exit }')
+          if [[ -n "$previous_tag" ]]; then
+            gh api "repos/$GH_REPO/compare/$previous_tag...$RELEASE_TAG" --paginate \
+              --jq '.commits[] | "- " + (.commit.message | split("\n")[0]) + " ([" + (.sha[0:7]) + "](" + .html_url + "))"' > commit-notes.md
+            { printf "## Changes\n\n"; cat commit-notes.md; printf "\n**Full Changelog**: https://github.com/%s/compare/%s...%s\n\n" "$GH_REPO" "$previous_tag" "$RELEASE_TAG"; cat release-notes.md; } > combined-notes.md
+            mv combined-notes.md release-notes.md
+          fi
           gh release create "$RELEASE_TAG" \
             distribution/Plupo-universal.dmg distribution/SHA256SUMS.txt \
             --verify-tag --title "Plupo $RELEASE_TAG" \
-            --generate-notes --notes-file release-notes.md --latest
+            --notes-file release-notes.md --latest
