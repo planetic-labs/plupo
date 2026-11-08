@@ -55,6 +55,14 @@ The app uses macOS drag-and-drop integration and sandboxed, read-only access to 
 
 These early preview builds use an ad-hoc signature, without an Apple Developer ID certificate or Apple notarization. macOS may block the first launch. If you trust the download, try opening Plupo once, then choose **System Settings → Privacy & Security → Open Anyway** and confirm. See [Apple's first-launch guidance](https://support.apple.com/102445). Do not disable system-wide security protections.
 
+If the standard **Open Anyway** route does not work and you trust the release downloaded from this repository, you can remove the download quarantine flag from the installed Plupo app only:
+
+```sh
+xattr -dr com.apple.quarantine /Applications/Plupo.app
+```
+
+This removes the quarantine flag; it does not sign, notarize, or verify the app. No `sudo` or system-wide Gatekeeper change is needed. Run it only after installing Plupo in Applications; a newly downloaded update may need approval again.
+
 Release downloads include a SHA-256 checksum. The app is built on GitHub for Apple Silicon and Intel without an Apple account or personal signing certificate. You can also build from source below.
 
 ## Updates
