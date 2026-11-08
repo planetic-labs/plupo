@@ -4,6 +4,15 @@ on:
   push:
     tags: ['v*']
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Existing tag to publish (leave empty for build only)'
+        type: string
+        default: ''
+      artifact_run_id:
+        description: 'Successful build run to reuse for publication'
+        type: string
+        default: ''
 
 permissions:
   contents: read
@@ -15,6 +24,7 @@ concurrency:
 jobs:
   build:
     name: Build Universal DMG
+    if: github.event_name != 'workflow_dispatch' || inputs.release_tag == ''
     runs-on: macos-26
     timeout-minutes: 25
     steps:
@@ -48,24 +58,39 @@ jobs:
 
   release:
     name: Publish GitHub Release
-    if: startsWith(github.ref, 'refs/tags/') && github.event_name == 'push'
+    if: always() && ((github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') && needs.build.result == 'success') || (github.event_name == 'workflow_dispatch' && inputs.release_tag != '' && inputs.artifact_run_id != ''))
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
       contents: write
+      actions: read
     steps:
+      - name: Check out release tools
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Download packaged app
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: Plupo-universal
           path: distribution
+          run-id: ${{ inputs.artifact_run_id || github.run_id }}
+          github-token: ${{ github.token }}
       - name: Publish DMG
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
-          RELEASE_TAG: ${{ github.ref_name }}
+          RELEASE_TAG: ${{ inputs.release_tag || github.ref_name }}
+          SOURCE_RUN_ID: ${{ inputs.artifact_run_id || github.run_id }}
         run: |
+          [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo 'Invalid release tag'; exit 1; }
+          git fetch --no-tags origin "refs/tags/$RELEASE_TAG:refs/tags/$RELEASE_TAG"
+          [[ "$SOURCE_RUN_ID" =~ ^[0-9]+$ ]] || { echo 'Invalid build run'; exit 1; }
+          expected_commit=$(git rev-parse "$RELEASE_TAG^{commit}")
+          built_commit=$(gh api "repos/$GH_REPO/actions/runs/$SOURCE_RUN_ID" --jq .head_sha)
+          [[ "$expected_commit" == "$built_commit" ]] || { echo 'Build does not match release tag'; exit 1; }
+          (cd distribution && sha256sum -c SHA256SUMS.txt)
           cat > release-notes.md <<'NOTES'
           ## Plupo for Apple Silicon and Intel
 
@@ -84,7 +109,6 @@ jobs:
 
           The DMG and its SHA-256 checksum are built automatically on GitHub. No Apple account or personal signing certificate is used.
           NOTES
-          python3 scripts/compose-release-notes.py "$RELEASE_TAG" release-notes.md
           gh release create "$RELEASE_TAG" \
             distribution/Plupo-universal.dmg distribution/SHA256SUMS.txt \
             --verify-tag --title "Plupo $RELEASE_TAG" \
