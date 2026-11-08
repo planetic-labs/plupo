@@ -77,3 +77,4 @@ build/
 *.mobileprovision
 *.provisionprofile
 *.log
+/output
