@@ -46,7 +46,7 @@ for scale in [1, 2] {
 
     text("Drag Plupo into Applications", x: 30, top: 297, size: 14,
          weight: .medium, color: ink, centered: true)
-    text("Apple Silicon  ·  macOS 15.7 or later", x: 30, top: 332, size: 11,
+    text("Apple Silicon + Intel  ·  macOS 14.0 or later", x: 30, top: 332, size: 11,
          weight: .regular, color: secondary, centered: true)
     NSGraphicsContext.restoreGraphicsState()
     rep.setCompression(.lzw, factor: 1)

@@ -17,7 +17,7 @@ jobs:
   analyze:
     name: Analyze Swift with CodeQL
     # CodeQL currently uses Rosetta on Apple Silicon. Analyze on Intel,
-    # while cross-compiling the same ARM64 application sources.
+    # while cross-compiling the same universal application sources.
     runs-on: macos-15-intel
     timeout-minutes: 45
     permissions:
@@ -43,7 +43,7 @@ jobs:
           xcodebuild -project Plupo.xcodeproj -scheme Plupo \
             -configuration Debug -destination 'generic/platform=macOS' \
             -derivedDataPath "$RUNNER_TEMP/PlupoCodeQL" \
-            ARCHS=arm64 ONLY_ACTIVE_ARCH=YES CODE_SIGNING_ALLOWED=NO \
+            ARCHS="arm64 x86_64" ONLY_ACTIVE_ARCH=NO CODE_SIGNING_ALLOWED=NO \
             clean build
       - name: Publish security analysis
         uses: github/codeql-action/analyze@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4

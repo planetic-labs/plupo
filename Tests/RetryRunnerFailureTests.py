@@ -11,7 +11,7 @@ class RetryTests(unittest.TestCase):
     def setUp(self):
         self.run = dict(head_repository={'full_name': 'planetic-labs/plupo'}, event='push', head_branch='v0.1.3',
                         path='.github/workflows/build.yml', status='completed', conclusion='failure', run_attempt=1)
-        self.jobs = [dict(id=12, name='Build Apple Silicon DMG', conclusion='cancelled', steps=[]),
+        self.jobs = [dict(id=12, name='Build Universal DMG', conclusion='cancelled', steps=[]),
                      dict(id=13, name='Publish GitHub Release', conclusion='skipped', steps=[])]
         self.annotations = [dict(annotation_level='failure', message=retry_runner.RUNNER_FAILURE)]
         self.posts = []

@@ -54,7 +54,7 @@ def retry(repo, run_id, dry_run=False, get=api, send=post):
         return 'Skipped: ' + reason
     attempt = run['run_attempt']
     jobs = pages(get, f'{base}/attempts/{attempt}/jobs', 'jobs')
-    build_jobs = [job for job in jobs if job.get('name') == 'Build Apple Silicon DMG']
+    build_jobs = [job for job in jobs if job.get('name') == 'Build Universal DMG']
     if len(build_jobs) != 1:
         return 'Skipped: expected build job was not found.'
     build = build_jobs[0]

@@ -2,13 +2,13 @@
 
 *Drag. Drop. Keep moving.*
 
-Plupo is a free, open-source macOS drag-and-drop shelf for Apple Silicon. It gives files a temporary home while you work: drag items into the shelf, switch between apps, and drop them wherever you need them.
+Plupo is a free, open-source macOS drag-and-drop shelf for Apple Silicon and Intel. It gives files a temporary home while you work: drag items into the shelf, switch between apps, and drop them wherever you need them.
 
 No complicated workflows. Just drag, drop, and keep moving.
 
-[**Download for Mac ↓**](https://github.com/planetic-labs/plupo/releases/latest/download/Plupo-arm64.dmg) · [Release notes](https://github.com/planetic-labs/plupo/releases/latest) · [Website](https://planetic-labs.github.io/plupo/)
+[**Download for Mac ↓**](https://github.com/planetic-labs/plupo/releases/latest/download/Plupo-universal.dmg) · [Release notes](https://github.com/planetic-labs/plupo/releases/latest) · [Website](https://planetic-labs.github.io/plupo/)
 
-Apple Silicon · macOS 15.7 or later · Free and open source
+Apple Silicon & Intel · macOS 14.0 or later · Free and open source
 
 <p align="center">
   <img src="docs/assets/plupo-workflow.png" alt="Illustration of Plupo: drag a file from Downloads onto the shelf at the right edge of the screen, then drag it into your project folder. Six small diagrams show left and right placement with top, middle, or bottom alignment." width="1200">
@@ -38,24 +38,24 @@ Compatibility depends on the representations supplied by the source app and acce
 
 ## Requirements
 
-- **macOS 15.7 or later**, as configured in the Xcode project.
-- **Apple Silicon only (M1 and newer)** is the project's intended support policy.
+- **macOS 14.0 or later**, as configured in the Xcode project.
+- **Apple Silicon or Intel Mac**. The universal app includes both architectures.
 
-The current build settings do not yet enforce ARM64-only output. Build explicitly for Apple Silicon as shown below; Intel support is not a project goal.
+One universal DMG runs natively on Apple Silicon (`arm64`) and Intel (`x86_64`). Intel and macOS 14 runtime behavior still needs testing on those systems.
 
 The app uses macOS drag-and-drop integration and sandboxed, read-only access to user-selected files. There is no explicit Accessibility or Input Monitoring permission request in the current source; cross-application drag detection has not been verified interactively.
 
 ## Installation
 
-[**Download Plupo for Apple Silicon**](https://github.com/planetic-labs/plupo/releases/latest)
+[**Download Plupo for Apple Silicon and Intel**](https://github.com/planetic-labs/plupo/releases/latest)
 
-1. Download `Plupo-arm64.dmg` from the latest release.
+1. Download `Plupo-universal.dmg` from the latest release.
 2. Open the DMG and drag **Plupo** into **Applications**.
 3. Eject the DMG and open Plupo from Applications.
 
 These early preview builds use an ad-hoc signature, without an Apple Developer ID certificate or Apple notarization. macOS may block the first launch. If you trust the download, try opening Plupo once, then choose **System Settings → Privacy & Security → Open Anyway** and confirm. See [Apple's first-launch guidance](https://support.apple.com/102445). Do not disable system-wide security protections.
 
-Release downloads include a SHA-256 checksum. The app is built on GitHub for ARM64 without an Apple account or personal signing certificate. You can also build from source below.
+Release downloads include a SHA-256 checksum. The app is built on GitHub for Apple Silicon and Intel without an Apple account or personal signing certificate. You can also build from source below.
 
 ## Updates
 
@@ -63,7 +63,7 @@ Use **Check for Updates…** in the menu bar or Preferences to find a newer rele
 
 ## Build from Source
 
-You need an Apple Silicon Mac and Xcode with its macOS SDK and command-line tools selected. The project records Xcode 26.3 as its creation version and uses Swift 5 language mode. Compatibility with older Xcode versions has not been verified. There are no third-party package dependencies; the interface uses SwiftUI and AppKit.
+You need a Mac and Xcode with its macOS SDK and command-line tools selected. The project records Xcode 26.3 as its creation version and uses Swift 5 language mode. Compatibility with older Xcode versions has not been verified. There are no third-party package dependencies; the interface uses SwiftUI and AppKit.
 
 1. Clone this repository:
 
@@ -73,20 +73,20 @@ You need an Apple Silicon Mac and Xcode with its macOS SDK and command-line tool
    ```
 
 2. Open `Plupo.xcodeproj` in Xcode.
-3. Select the **Plupo** scheme and your Apple Silicon Mac as the run destination.
+3. Select the **Plupo** scheme and your Mac as the run destination.
 4. Choose **Product → Run**. If signing is required, select your development team in **Signing & Capabilities**. For a personal signed build, use your own unique bundle identifier.
 
 To attempt a local Debug build without signing:
 
 ```sh
 xcodebuild -project Plupo.xcodeproj -scheme Plupo \
-  -configuration Debug -destination 'platform=macOS,arch=arm64' \
-  -derivedDataPath build CODE_SIGNING_ALLOWED=NO build
+  -configuration Debug -destination 'generic/platform=macOS' \
+  -derivedDataPath build ARCHS="arm64 x86_64" ONLY_ACTIVE_ARCH=NO CODE_SIGNING_ALLOWED=NO build
 ```
 
 The expected output is `build/Build/Products/Debug/Plupo.app`.
 
-The committed source was successfully built for ARM64 with Xcode 27.0 and signing disabled on October 18, 2026. Running the app and interactive drag-and-drop behavior were not verified.
+Universal Release builds target both Apple Silicon and Intel with a minimum of macOS 14.0. Compilation does not replace runtime testing on Intel or macOS 14.
 
 ## Usage
 
@@ -99,7 +99,7 @@ Use the item's lock button or enable **Keep items on shelf after dragging them o
 
 ## Why Plupo?
 
-Plupo aims to be a small, thoughtfully crafted native Mac utility: simple interactions, minimal interruptions, and a focused Apple Silicon experience. It is free and open source under the MIT license.
+Plupo aims to be a small, thoughtfully crafted native Mac utility: simple interactions, minimal interruptions, and a focused native Mac experience. It is free and open source under the MIT license.
 
 Plupo is independently developed as an alternative to utilities such as Yoink and Dropover. It is not affiliated with, sponsored by, or endorsed by their developers.
 

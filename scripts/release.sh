@@ -68,8 +68,8 @@ echo 'Running regression checks…'
 bash Tests/run.sh
 echo 'Verifying the Release build…'
 xcodebuild -project Plupo.xcodeproj -scheme Plupo \
-  -configuration Release -destination 'platform=macOS,arch=arm64' \
-  -derivedDataPath build/release-check CODE_SIGNING_ALLOWED=NO \
+  -configuration Release -destination 'generic/platform=macOS' \
+  -derivedDataPath build/release-check ARCHS="arm64 x86_64" ONLY_ACTIVE_ARCH=NO CODE_SIGNING_ALLOWED=NO \
   MARKETING_VERSION="$version" build
 [[ -z "$(git status --porcelain --untracked-files=all)" ]] || fail 'Files changed during verification. Review and commit them before retrying.'
 RELEASE_VERSION="$version" python3 - <<'PY'
