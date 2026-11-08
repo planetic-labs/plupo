@@ -70,7 +70,7 @@ jobs:
           ## Plupo for Apple Silicon and Intel
 
           Download **Plupo-universal.dmg**, open it, and drag Plupo into Applications.
-          Requires **macOS 14.0 or later** and an **Mac with Apple Silicon or Intel**.
+          Requires **macOS 14.0 or later** and a **Mac with Apple Silicon or Intel**.
 
           See the README for known limitations.
 
@@ -84,6 +84,7 @@ jobs:
 
           The DMG and its SHA-256 checksum are built automatically on GitHub. No Apple account or personal signing certificate is used.
           NOTES
+          python3 scripts/compose-release-notes.py "$RELEASE_TAG" release-notes.md
           gh release create "$RELEASE_TAG" \
             distribution/Plupo-universal.dmg distribution/SHA256SUMS.txt \
             --verify-tag --title "Plupo $RELEASE_TAG" \
