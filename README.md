@@ -2,8 +2,6 @@
 
 *Drag. Drop. Keep moving.*
 
-<img src="docs/assets/plupo-icon.png" alt="Plupo app icon" width="96" height="96">
-
 Plupo is a free, open-source macOS drag-and-drop shelf for Apple Silicon. It gives files a temporary home while you work: drag items into the shelf, switch between apps, and drop them wherever you need them.
 
 No complicated workflows. Just drag, drop, and keep moving.
