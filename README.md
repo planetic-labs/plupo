@@ -8,6 +8,16 @@ Plupo is a free, open-source macOS drag-and-drop shelf for Apple Silicon. It giv
 
 No complicated workflows. Just drag, drop, and keep moving.
 
+[**Download for Mac ↓**](https://github.com/planetic-labs/plupo/releases/latest/download/Plupo-arm64.dmg) · [Release notes](https://github.com/planetic-labs/plupo/releases/latest) · [Website](https://planetic-labs.github.io/plupo/)
+
+Apple Silicon · macOS 15.7 or later · Free and open source
+
+<p align="center">
+  <img src="docs/assets/plupo-workflow.png" alt="Illustration of Plupo: drag a file from Downloads onto the shelf at the right edge of the screen, then drag it into your project folder. Six small diagrams show left and right placement with top, middle, or bottom alignment." width="1200">
+  <br>
+  <sub>Illustrated workflow, not a screenshot. Park a file, switch windows, and drag it where it belongs.</sub>
+</p>
+
 ## Overview
 
 Keep a few files close at hand while finding a destination in another window or application. Plupo lives in the menu bar and provides a small floating shelf at the edge of your screen.
@@ -39,7 +49,7 @@ The app uses macOS drag-and-drop integration and sandboxed, read-only access to 
 
 ## Installation
 
-[**Download Plupo for Apple Silicon**](https://github.com/planetic-labs/open-drag-shelf/releases/latest)
+[**Download Plupo for Apple Silicon**](https://github.com/planetic-labs/plupo/releases/latest)
 
 1. Download `Plupo-arm64.dmg` from the latest release.
 2. Open the DMG and drag **Plupo** into **Applications**.
