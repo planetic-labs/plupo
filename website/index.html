@@ -68,7 +68,7 @@
   </defs></svg>
   <header class="header wrap">
     <a class="brand" href="./" aria-label="Plupo home"><img src="assets/plupo-icon.png" width="36" height="36" alt=""><span>Plupo</span></a>
-    <nav aria-label="Main navigation"><a href="#how-it-works">How it works</a><a href="https://github.com/planetic-labs/plupo" class="github-link">GitHub <span aria-hidden="true">↗</span></a><a class="nav-download" href="#download">Get Plupo <span aria-hidden="true">↓</span></a></nav>
+    <nav aria-label="Main navigation"><a href="#how-it-works">How it works</a><a href="#guides">Guides</a><a href="#faq">FAQ</a><a href="https://github.com/planetic-labs/plupo" class="github-link">GitHub <span aria-hidden="true">↗</span></a><a class="nav-download" href="#download">Get Plupo <span aria-hidden="true">↓</span></a></nav>
   </header>
   <main id="main">
     <section class="hero wrap" aria-labelledby="hero-title">
@@ -118,12 +118,48 @@
       </div>
       <div class="local-note"><span class="local-symbol" aria-hidden="true">⌘</span><div><h3>Your files are your business.</h3><p>No account, cloud storage, or analytics. The shelf stays on your Mac, and clears when you quit. See the <a href="https://github.com/planetic-labs/plupo#privacy">privacy notes</a> for update checks and temporary files.</p></div><span class="note-stamp">BUILT TO BE<br>A LITTLE UTILITY.</span></div>
     </section>
+    <section id="guides" class="guides-section wrap" aria-labelledby="guides-title">
+      <div class="section-heading">
+        <h2 id="guides-title">Guides &amp; tips</h2>
+      </div>
+      <div class="guides-grid">
+        <article class="guide" id="screenshots">
+          <h3>Send Mac screenshots to Plupo</h3>
+          <p>Available in Plupo 0.1.6 and later. Keep taking screenshots with the macOS shortcuts you already use.</p>
+          <ol>
+            <li>Press <kbd>⇧⌘5</kbd> and check <strong>Options → Save to</strong>. The Desktop works, as does any folder you’ve chosen for screenshots.</li>
+            <li>From the Plupo menu bar icon, open <strong>Preferences → Screenshots → Choose Folder…</strong> and select that same folder.</li>
+            <li>Take a test shot with <kbd>⇧⌘4</kbd>. Once macOS saves the image, Plupo opens the shelf with your new screenshot. Drag it from the shelf into a chat, email, or document.</li>
+          </ol>
+          <p>Use <strong>Add new screenshots to the shelf</strong> to pause or resume. If you change where macOS saves screenshots, choose the new folder in Plupo too.</p>
+        </article>
+        <article class="guide" id="drag-from-dock">
+          <h3>Drag a file from Downloads in the Dock</h3>
+          <ol>
+            <li>Set <strong>Preferences → Position &amp; Behavior → Show Shelf</strong> to <strong>When Drag Starts</strong>.</li>
+            <li>Open the Downloads stack and start dragging a file.</li>
+            <li>If the shelf stays hidden, hold the file near your configured screen edge at the shelf’s height. Once the shelf opens, move onto it and release.</li>
+          </ol>
+          <p>For a shelf that stays within reach, choose <strong>Always Visible</strong>. The empty shelf is narrow and widens as soon as you add an item.</p>
+        </article>
+        <article class="guide">
+          <h3>Keep an item for your next drop</h3>
+          <p>Control-click an item and choose <strong>Lock Item</strong> to keep it on the shelf after you drag it out. For every item, turn on <strong>Keep items on shelf after dragging them out</strong> in Preferences.</p>
+        </article>
+        <article class="guide">
+          <h3>Check what’s on the shelf</h3>
+          <p>Control-click a file, image, or text item and choose <strong>Quick Look</strong> to preview it before you drag it into another app.</p>
+        </article>
+      </div>
+    </section>
     <section id="download" class="download-section wrap" aria-labelledby="download-title">
       <div class="download-panel"><img src="assets/plupo-icon.png" width="86" height="86" alt=""><p class="eyebrow">ONE LESS THING TO JUGGLE</p><h2 id="download-title">Make room for a<br>little more flow.</h2><p>Free, open source, and ready for your Mac.</p><a class="button primary" href="https://github.com/planetic-labs/plupo/releases/latest/download/Plupo-universal.dmg"><svg><use href="#icon-download"/></svg>Download Plupo</a><p class="download-meta"><a id="latest-release" href="https://github.com/planetic-labs/plupo/releases/latest">Latest release</a><span>·</span>Apple Silicon &amp; Intel<span>·</span>macOS 14.0+</p></div>
       <div class="install-notes"><h3>A quick note on first launch.</h3><p>Plupo isn’t signed with an Apple Developer ID or notarized by Apple yet. macOS may block the first launch. If you trust the download, try opening the installed app once, then go to <strong>System Settings → Privacy & Security → Open Anyway</strong> and confirm.</p><details><summary>If “Open Anyway” does not work</summary><p>Only if you trust the release downloaded from our GitHub repository, remove the quarantine flag from the installed app:</p><pre><code>xattr -dr com.apple.quarantine /Applications/Plupo.app</code></pre><p>This applies only to Plupo. It does not sign, notarize, or verify the app. No sudo or system-wide security change is needed.</p></details><a href="https://support.apple.com/102445">Read Apple’s first-launch guide <span aria-hidden="true">↗</span></a></div>
     </section>
-    <section class="faq-section wrap" aria-labelledby="faq-title"><h2 id="faq-title">A few little details.</h2><div class="faq-list">
+    <section id="faq" class="faq-section wrap" aria-labelledby="faq-title"><h2 id="faq-title">Frequently asked questions</h2><div class="faq-list">
       <details><summary>How do I install Plupo?</summary><p>Download the DMG, open it, and drag Plupo into Applications. Eject the disk image and open Plupo from Applications. You’ll find it in your menu bar. See the first-launch note above if macOS blocks it.</p></details>
+      <details><summary>Why hasn’t my screenshot appeared?</summary><p>Check that <strong>Add new screenshots to the shelf</strong> is enabled and that Plupo is watching the folder shown under <strong>Save to</strong> in the macOS screenshot options. Wait for macOS to save the file. Shots taken with <kbd>⌃⇧⌘4</kbd> go to the clipboard. <a href="#screenshots">See the setup steps</a>.</p></details>
+      <details><summary>Does Plupo import the screenshots I already have?</summary><p>Plupo picks up new screenshots saved while monitoring is on. Existing screenshots and ordinary images in the folder stay where they are.</p></details>
       <details><summary>Does Plupo move or back up my files?</summary><p>The shelf references your original files; adding them doesn’t move or back them up. Contents aren’t restored after quitting. When you drag an item into another app, that destination decides how to handle it.</p></details>
       <details><summary>Will it work on my Mac?</summary><p>Plupo supports Apple Silicon and Intel Macs running macOS 14.0 or later. Drag-and-drop support depends on the source and destination apps. See the <a href="https://github.com/planetic-labs/plupo#project-status">README for current limitations</a>.</p></details>
       <details><summary>How do I get updates?</summary><p>Download the newest DMG from <a href="https://github.com/planetic-labs/plupo/releases/latest">GitHub Releases</a> and replace Plupo in Applications. Release notes show what changed between versions.</p></details>

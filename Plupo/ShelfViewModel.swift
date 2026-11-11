@@ -14,6 +14,11 @@ class ShelfViewModel: ObservableObject {
 
     var isLoadingDrop: Bool { pendingDrops > 0 }
 
+    func addItems(_ newItems: [ShelfItem]) {
+        items.append(contentsOf: newItems)
+        onItemsChanged?()
+    }
+
     func toggleLock(for item: ShelfItem) {
         if let index = items.firstIndex(where: { $0.id == item.id }) {
             items[index].isLocked.toggle()

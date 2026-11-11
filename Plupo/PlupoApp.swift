@@ -32,10 +32,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         // Initialize visibility subscriptions, including the saved mode.
         _ = WindowManager.shared
+        ScreenshotMonitor.shared.restore()
         UpdateChecker.shared.start()
     }
     
     func applicationWillTerminate(_ notification: Notification) {
+        ScreenshotMonitor.shared.stop()
         DragDetector.shared.stopMonitoring()
         PlupoTemporaryFiles.cleanup()
     }

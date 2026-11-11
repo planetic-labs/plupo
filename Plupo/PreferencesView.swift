@@ -10,6 +10,7 @@ import ServiceManagement
 
 struct PreferencesView: View {
     @EnvironmentObject var prefs: PreferencesStore
+    @ObservedObject private var screenshots = ScreenshotMonitor.shared
     @ObservedObject private var updates = UpdateChecker.shared
     
     var body: some View {
@@ -103,6 +104,41 @@ struct PreferencesView: View {
                         .padding(.horizontal, 4)
                     }
                     
+                    GroupBox(label: Text("Screenshots").font(.system(size: 11, weight: .bold))) {
+                        VStack(alignment: .leading, spacing: 10) {
+                            Toggle("Add new screenshots to the shelf", isOn: Binding(
+                                get: { screenshots.isMonitoring },
+                                set: { screenshots.setEnabled($0) }
+                            ))
+                            .disabled(screenshots.folder == nil)
+
+                            HStack {
+                                Button(screenshots.folder == nil ? "Choose Folder…" : "Change Folder…") {
+                                    screenshots.chooseFolder()
+                                }
+                                if let folder = screenshots.folder {
+                                    Text(folder.lastPathComponent)
+                                        .lineLimit(1)
+                                        .truncationMode(.middle)
+                                        .help(folder.path)
+                                }
+                            }
+
+                            if let error = screenshots.errorMessage {
+                                Text(error).font(.caption).foregroundStyle(.red)
+                            } else if screenshots.isMonitoring {
+                                Text(screenshots.detectedScreenshot
+                                     ? "Screenshot added to the shelf."
+                                     : "Take a screenshot with Shift-Command-4 to test this folder.")
+                                    .font(.caption).foregroundStyle(.secondary)
+                            } else {
+                                Text("Choose the folder where macOS saves screenshots.")
+                                    .font(.caption).foregroundStyle(.secondary)
+                            }
+                        }
+                        .padding(8)
+                    }
+
                     GroupBox(label: Text("Updates").font(.system(size: 11, weight: .bold))) {
                         VStack(alignment: .leading, spacing: 10) {
                             Toggle("Automatically check for updates", isOn: $updates.automaticallyChecks)

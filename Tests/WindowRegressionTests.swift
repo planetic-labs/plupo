@@ -69,6 +69,34 @@ struct WindowRegressionTests {
         let menu = view.menu(for: event)!
         expect(menu.items.first?.title == "Unlock Item", "Locked menu label must offer unlocking")
         expect(menu.items.first?.action == NSSelectorFromString("toggleLock"), "Unlock must invoke the real toggle action")
+        let screenshotFolder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: screenshotFolder, withIntermediateDirectories: false)
+        defer { try? FileManager.default.removeItem(at: screenshotFolder) }
+        let png = Data(base64Encoded: "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aB9sAAAAASUVORK5CYII=")!
+        func writeScreenshot(_ name: String) throws {
+            let url = screenshotFolder.appendingPathComponent(name)
+            try png.write(to: url)
+            let tag = Data([1])
+            let result = tag.withUnsafeBytes {
+                setxattr(url.path, "com.apple.metadata:kMDItemIsScreenCapture", $0.baseAddress, $0.count, 0, 0)
+            }
+            expect(result == 0, "The test screenshot must have the macOS capture attribute")
+        }
+        try writeScreenshot("Old screenshot.png")
+        var imported: [ShelfItem] = []
+        let monitor = ScreenshotMonitor { imported.append(contentsOf: $0) }
+        defer { monitor.stop() }
+        try monitor.start(in: screenshotFolder)
+        try png.write(to: screenshotFolder.appendingPathComponent("Ordinary image.png"))
+        try writeScreenshot("New screenshot.png")
+        try await Task.sleep(for: .milliseconds(2400))
+        expect(imported.map(\.title) == ["New screenshot.png"], "Import only new screenshots, once")
+        expect(monitor.detectedScreenshot, "A successful import should confirm setup")
+        monitor.stop()
+        try writeScreenshot("While paused.png")
+        try monitor.start(in: screenshotFolder)
+        try await Task.sleep(for: .milliseconds(1300))
+        expect(imported.count == 1, "Resuming should skip screenshots already present")
         manager.hideShelfWindow()
         print("Passed \(checks) window and menu regression checks")
     }
