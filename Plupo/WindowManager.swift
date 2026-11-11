@@ -8,6 +8,7 @@
 import SwiftUI
 import AppKit
 import Combine
+import UniformTypeIdentifiers
 
 class WindowManager: NSObject {
     static let shared = WindowManager()
@@ -15,9 +16,10 @@ class WindowManager: NSObject {
     let shelfViewModel = ShelfViewModel()
     
     private var shelfPanel: NSPanel?
+    private var dragEdgePanel: NSPanel?
     private var preferencesWindow: NSWindow?
     
-    private let windowWidth: CGFloat = 150
+    private var windowWidth: CGFloat { shelfViewModel.usesCompactLayout ? 64 : 150 }
     private let windowHeight: CGFloat = 420
     private var isAnimating = false
     private var needsUpdate = false
@@ -32,7 +34,10 @@ class WindowManager: NSObject {
     }
     
     private func setupPreferencesObserver() {
-        shelfViewModel.onItemsChanged = { [weak self] in self?.scheduleAutoHide() }
+        shelfViewModel.onItemsChanged = { [weak self] in
+            self?.updateShelfPosition()
+            self?.scheduleAutoHide()
+        }
         shelfViewModel.onDropStarted = { [weak self] in self?.cancelAutoHide() }
         shelfViewModel.onDropFinished = { [weak self] in
             guard let self else { return }
@@ -79,6 +84,45 @@ class WindowManager: NSObject {
         }
         autoHideTask = task
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: task)
+    }
+
+    func armDragEdge() {
+        guard visibility.mode == .dragStarts, !visibility.desiredVisible else {
+            disarmDragEdge()
+            return
+        }
+
+        let screen = getActiveScreen()
+        let target = getTargetFrame(for: screen, isVisibleState: true)
+        let edgeWidth: CGFloat = 24
+        let edgeX = PreferencesStore.shared.position == .left
+            ? screen.visibleFrame.minX : screen.visibleFrame.maxX - edgeWidth
+        let frame = NSRect(x: edgeX, y: target.minY, width: edgeWidth, height: target.height)
+
+        let panel = dragEdgePanel ?? makeDragEdgePanel()
+        if panel.frame != frame { panel.setFrame(frame, display: true) }
+        if !panel.isVisible { panel.orderFrontRegardless() }
+    }
+
+    func disarmDragEdge() {
+        guard let panel = dragEdgePanel, panel.isVisible else { return }
+        panel.orderOut(nil)
+    }
+
+    private func makeDragEdgePanel() -> NSPanel {
+        let panel = NSPanel(contentRect: .zero, styleMask: [.borderless, .nonactivatingPanel],
+                            backing: .buffered, defer: false)
+        panel.level = .floating
+        panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+        panel.isOpaque = false
+        panel.hasShadow = false
+        panel.backgroundColor = NSColor.black.withAlphaComponent(0.01)
+        let destination = DragEdgeView()
+        destination.registerForDraggedTypes([.fileURL, .URL, .string, .tiff, .png,
+                                             NSPasteboard.PasteboardType(UTType.item.identifier)])
+        panel.contentView = destination
+        dragEdgePanel = panel
+        return panel
     }
 
     func dragDidBegin(source: String = "monitor") {
@@ -272,5 +316,16 @@ extension WindowManager: NSWindowDelegate {
             // Switch back to accessory (background/menu-bar only) mode
             NSApp.setActivationPolicy(.accessory)
         }
+    }
+}
+
+private final class DragEdgeView: NSView {
+    override func draggingEntered(_ sender: any NSDraggingInfo) -> NSDragOperation {
+        // Wait until AppKit finishes dispatching the entry before replacing the destination.
+        DispatchQueue.main.async {
+            guard NSEvent.pressedMouseButtons & 1 != 0 else { return }
+            DragDetector.shared.beginDrag()
+        }
+        return []
     }
 }

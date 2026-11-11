@@ -30,6 +30,14 @@ struct WindowRegressionTests {
         preferences.showBehavior = .always
         try await settle()
         expect(panel.alphaValue == 1, "Always Visible must apply to a hidden shelf immediately")
+        expect(panel.frame.width == 64, "An empty shelf must open at its compact width")
+        expect(manager.shelfViewModel.handleDroppedProviders([NSItemProvider(object: "width test" as NSString)]),
+               "The shelf must accept the test drop")
+        try await settle()
+        expect(panel.frame.width == 150, "Adding the first item must expand the shelf")
+        manager.shelfViewModel.clearAll()
+        try await settle()
+        expect(panel.frame.width == 64, "Removing the last item must restore the compact width")
         preferences.showBehavior = .dragStarts
         manager.showShelfWindow()
         manager.dragDidEnd() // Schedule hiding an empty shelf.

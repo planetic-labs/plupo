@@ -96,6 +96,7 @@ struct ShelfView: View {
     private var headerView: some View {
         HStack {
             Text("Plupo")
+                .fixedSize(horizontal: true, vertical: false)
                 .font(.system(size: 12, weight: .bold, design: .rounded))
                 .foregroundColor(.primary.opacity(0.8))
             
@@ -135,11 +136,12 @@ struct ShelfView: View {
             Spacer()
             
             // Item Counter
-            Text("\(viewModel.items.count) items")
-                .font(.system(size: 10, weight: .semibold, design: .rounded))
-                .foregroundColor(.secondary)
-            
-            Spacer()
+            if !viewModel.usesCompactLayout {
+                Text("\(viewModel.items.count) items")
+                    .font(.system(size: 10, weight: .semibold, design: .rounded))
+                    .foregroundColor(.secondary)
+                Spacer()
+            }
             
             // Hide Panel Button
             Button(action: {
@@ -162,12 +164,15 @@ struct ShelfView: View {
                 .font(.system(size: 24))
                 .foregroundColor(.secondary.opacity(0.6))
             
-            Text("Drag items here")
-                .font(.system(size: 11, weight: .medium, design: .rounded))
-                .foregroundColor(.secondary.opacity(0.7))
-                .multilineTextAlignment(.center)
+            if !viewModel.usesCompactLayout {
+                Text("Drag items here")
+                    .font(.system(size: 11, weight: .medium, design: .rounded))
+                    .foregroundColor(.secondary.opacity(0.7))
+                    .multilineTextAlignment(.center)
+            }
         }
-        .padding(.horizontal, 16)
+        .help("Drag items here")
+        .accessibilityLabel("Drag items here")
         .opacity(isTargeted ? 0.4 : 1.0)
     }
 }

@@ -6,6 +6,8 @@ class ShelfViewModel: ObservableObject {
     @Published private(set) var items: [ShelfItem] = []
     @Published private(set) var dropError: String?
     private var pendingDrops = 0
+    var usesCompactLayout: Bool { items.isEmpty && dropError == nil }
+
     var onItemsChanged: (() -> Void)?
     var onDropStarted: (() -> Void)?
     var onDropFinished: (() -> Void)?
