@@ -65,6 +65,30 @@ class ShelfViewModel: ObservableObject {
         onItemsChanged?()
     }
 
+    @discardableResult
+    func importClipboard(_ pasteboard: NSPasteboard) -> Bool {
+        let priorities: [UTType] = [.fileURL, .url, .image, .plainText]
+        let imported = (pasteboard.pasteboardItems ?? []).compactMap { entry -> ShelfItem? in
+            for priority in priorities {
+                for type in entry.types where UTType(type.rawValue)?.conforms(to: priority) == true {
+                    let value: NSSecureCoding?
+                    if priority == .image {
+                        value = entry.data(forType: type) as NSData?
+                    } else {
+                        value = entry.string(forType: type) as NSString?
+                    }
+                    if let content = Self.decode(value, type: type.rawValue, name: nil) {
+                        return ShelfItem(content: content)
+                    }
+                }
+            }
+            return nil
+        }
+        guard !imported.isEmpty else { return false }
+        addItems(imported)
+        return true
+    }
+
     static func supportedTypes(for provider: NSItemProvider) -> [String] {
         let identifiers = provider.registeredTypeIdentifiers
         // Prefer original file references over image/text representations of the same file.

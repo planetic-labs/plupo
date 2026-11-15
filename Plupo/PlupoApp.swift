@@ -50,6 +50,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         let menu = NSMenu()
         menu.addItem(NSMenuItem(title: "Toggle Shelf", action: #selector(toggleShelf), keyEquivalent: "y"))
+        menu.addItem(NSMenuItem(title: "Add from Clipboard", action: #selector(addFromClipboard), keyEquivalent: ""))
         menu.addItem(NSMenuItem.separator())
         menu.addItem(NSMenuItem(title: "Check for Updates…", action: #selector(checkForUpdates), keyEquivalent: ""))
         menu.addItem(NSMenuItem(title: "Preferences...", action: #selector(showPreferences), keyEquivalent: ","))
@@ -64,6 +65,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         WindowManager.shared.toggleShelfWindow()
     }
     
+    @objc func addFromClipboard() {
+        let manager = WindowManager.shared
+        if manager.shelfViewModel.importClipboard(.general) {
+            manager.showShelfWindow()
+        } else {
+            let alert = NSAlert()
+            alert.messageText = "No supported items in the clipboard"
+            alert.informativeText = "Copy a file, link, image, or plain text and try again."
+            alert.runModal()
+        }
+    }
+
     @objc func showPreferences() {
         WindowManager.shared.showPreferencesWindow()
     }
