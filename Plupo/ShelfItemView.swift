@@ -52,11 +52,12 @@ struct ShelfItemView: View {
         )
         .overlay(
             RoundedRectangle(cornerRadius: 10)
-                .stroke(Color.primary.opacity(0.08), lineWidth: 1)
+                .stroke(viewModel.selectedIDs.contains(item.id) ? Color.accentColor : Color.primary.opacity(0.08), lineWidth: 1)
         )
         .contentShape(RoundedRectangle(cornerRadius: 10))
         .overlay(alignment: .leading) {
             NativeDragSource(item: item, viewModel: viewModel, preview: showQuickLook)
+                .help("Command-click to select multiple items")
                 // Keep native dragging away from the hover action buttons.
                 .padding(.trailing, isHovering ? 66 : 0)
         }

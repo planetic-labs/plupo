@@ -3,7 +3,10 @@ import Combine
 import UniformTypeIdentifiers
 
 class ShelfViewModel: ObservableObject {
-    @Published private(set) var items: [ShelfItem] = []
+    @Published private(set) var items: [ShelfItem] = [] {
+        didSet { selectedIDs.formIntersection(items.map(\.id)) }
+    }
+    @Published private(set) var selectedIDs = Set<UUID>()
     @Published private(set) var dropError: String?
     private var pendingDrops = 0
     var usesCompactLayout: Bool { items.isEmpty && dropError == nil }
@@ -40,10 +43,26 @@ class ShelfViewModel: ObservableObject {
         onItemsChanged?()
     }
 
+    func select(_ id: UUID, extending: Bool) {
+        if extending {
+            if selectedIDs.remove(id) == nil { selectedIDs.insert(id) }
+        } else {
+            selectedIDs = [id]
+        }
+    }
+
+    func itemsForDrag(startingAt id: UUID) -> [ShelfItem] {
+        items.filter { selectedIDs.contains(id) ? selectedIDs.contains($0.id) : $0.id == id }
+    }
+
     func finishDrag(itemID: UUID, operation: NSDragOperation, keepItems: Bool) {
-        guard !operation.isEmpty, !keepItems,
-              let item = items.first(where: { $0.id == itemID }), !item.isLocked else { return }
-        removeItem(item)
+        finishDrag(itemIDs: [itemID], operation: operation, keepItems: keepItems)
+    }
+
+    func finishDrag(itemIDs: Set<UUID>, operation: NSDragOperation, keepItems: Bool) {
+        guard !operation.isEmpty, !keepItems else { return }
+        items.removeAll { itemIDs.contains($0.id) && !$0.isLocked }
+        onItemsChanged?()
     }
 
     static func supportedTypes(for provider: NSItemProvider) -> [String] {

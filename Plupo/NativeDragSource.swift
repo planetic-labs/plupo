@@ -19,28 +19,50 @@ struct NativeDragSource: NSViewRepresentable {
         weak var viewModel: ShelfViewModel?
         var preview: (() -> Void)?
         private var mouseDownPoint: NSPoint?
-        private var draggedID: UUID?
+        private var draggedIDs = Set<UUID>()
+        private var selectsOnMouseUp = false
 
         override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
 
         override func mouseDown(with event: NSEvent) {
             mouseDownPoint = convert(event.locationInWindow, from: nil)
+            guard let id = item?.id, let viewModel else { return }
+            let extending = event.modifierFlags.contains(.command)
+            selectsOnMouseUp = !extending && viewModel.selectedIDs.contains(id)
+            if !selectsOnMouseUp { viewModel.select(id, extending: extending) }
             if event.clickCount == 2 { preview?() }
         }
 
-        override func mouseUp(with event: NSEvent) { mouseDownPoint = nil }
+        override func mouseUp(with event: NSEvent) {
+            if mouseDownPoint != nil, selectsOnMouseUp, let id = item?.id {
+                viewModel?.select(id, extending: false)
+            }
+            mouseDownPoint = nil
+            selectsOnMouseUp = false
+        }
 
         override func mouseDragged(with event: NSEvent) {
             guard let start = mouseDownPoint, let item else { return }
             let point = convert(event.locationInWindow, from: nil)
             guard hypot(point.x - start.x, point.y - start.y) >= 4 else { return }
-            guard let writer = item.pasteboardWriter() else { return }
+            guard let viewModel else { return }
+            let payload = viewModel.itemsForDrag(startingAt: item.id).compactMap { candidate in
+                candidate.pasteboardWriter().map { (candidate, $0) }
+            }
+            guard !payload.isEmpty else { return }
             mouseDownPoint = nil
-            draggedID = item.id
+            draggedIDs = Set(payload.map { $0.0.id })
+            let draggingItems = payload.enumerated().map { index, entry in
+                let draggingItem = NSDraggingItem(pasteboardWriter: entry.1)
+                let offset = CGFloat(min(index, 3)) * 3
+                draggingItem.setDraggingFrame(
+                    NSRect(x: point.x - 16 + offset, y: point.y - 16 - offset, width: 32, height: 32),
+                    contents: entry.0.thumbnail
+                )
+                return draggingItem
+            }
             WindowManager.shared.dragDidBegin(source: "shelf")
-            let draggingItem = NSDraggingItem(pasteboardWriter: writer)
-            draggingItem.setDraggingFrame(NSRect(x: point.x - 16, y: point.y - 16, width: 32, height: 32), contents: item.thumbnail)
-            beginDraggingSession(with: [draggingItem], event: event, source: self)
+            beginDraggingSession(with: draggingItems, event: event, source: self)
         }
 
         func draggingSession(_ session: NSDraggingSession, sourceOperationMaskFor context: NSDraggingContext) -> NSDragOperation {
@@ -49,11 +71,9 @@ struct NativeDragSource: NSViewRepresentable {
         }
 
         func draggingSession(_ session: NSDraggingSession, endedAt screenPoint: NSPoint, operation: NSDragOperation) {
-            if let draggedID {
-                viewModel?.finishDrag(itemID: draggedID, operation: operation,
-                                      keepItems: PreferencesStore.shared.keepItemsAfterDrag)
-            }
-            draggedID = nil
+            viewModel?.finishDrag(itemIDs: draggedIDs, operation: operation,
+                                  keepItems: PreferencesStore.shared.keepItemsAfterDrag)
+            draggedIDs.removeAll()
             WindowManager.shared.dragDidEnd(source: "shelf")
         }
 
