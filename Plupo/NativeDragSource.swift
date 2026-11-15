@@ -20,25 +20,28 @@ struct NativeDragSource: NSViewRepresentable {
         var preview: (() -> Void)?
         private var mouseDownPoint: NSPoint?
         private var draggedIDs = Set<UUID>()
-        private var selectsOnMouseUp = false
+        private var extendsSelection = false
+        private var requestsMove = false
+        private var fileReferences: [UUID: NSURL] = [:]
 
         override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
 
         override func mouseDown(with event: NSEvent) {
             mouseDownPoint = convert(event.locationInWindow, from: nil)
             guard let id = item?.id, let viewModel else { return }
-            let extending = event.modifierFlags.contains(.command)
-            selectsOnMouseUp = !extending && viewModel.selectedIDs.contains(id)
-            if !selectsOnMouseUp { viewModel.select(id, extending: extending) }
+            extendsSelection = event.modifierFlags.contains(.command)
+            if !extendsSelection && !viewModel.selectedIDs.contains(id) {
+                viewModel.select(id, extending: false)
+            }
             if event.clickCount == 2 { preview?() }
         }
 
         override func mouseUp(with event: NSEvent) {
-            if mouseDownPoint != nil, selectsOnMouseUp, let id = item?.id {
-                viewModel?.select(id, extending: false)
+            if mouseDownPoint != nil, let id = item?.id {
+                viewModel?.select(id, extending: extendsSelection)
             }
             mouseDownPoint = nil
-            selectsOnMouseUp = false
+            extendsSelection = false
         }
 
         override func mouseDragged(with event: NSEvent) {
@@ -52,6 +55,21 @@ struct NativeDragSource: NSViewRepresentable {
             guard !payload.isEmpty else { return }
             mouseDownPoint = nil
             draggedIDs = Set(payload.map { $0.0.id })
+            requestsMove = event.modifierFlags.contains(.command)
+                && !event.modifierFlags.contains(.option)
+                && payload.allSatisfy { entry in
+                    guard case .file(let url) = entry.0.content else { return false }
+                    let temporaryDirectory = PlupoTemporaryFiles.directory.resolvingSymlinksInPath().path
+                    return !url.resolvingSymlinksInPath().path.hasPrefix(temporaryDirectory + "/")
+                }
+            if requestsMove {
+                for (candidate, _) in payload {
+                    if case .file(let url) = candidate.content,
+                       let reference = (url as NSURL).fileReferenceURL() {
+                        fileReferences[candidate.id] = reference as NSURL
+                    }
+                }
+            }
             let draggingItems = payload.enumerated().map { index, entry in
                 let draggingItem = NSDraggingItem(pasteboardWriter: entry.1)
                 let offset = CGFloat(min(index, 3)) * 3
@@ -67,13 +85,20 @@ struct NativeDragSource: NSViewRepresentable {
 
         func draggingSession(_ session: NSDraggingSession, sourceOperationMaskFor context: NSDraggingContext) -> NSDragOperation {
             // Reordering/duplicating items inside this shelf is not a supported operation.
-            context == .outsideApplication ? .copy : []
+            guard context == .outsideApplication else { return [] }
+            return requestsMove ? [.copy, .move] : .copy
         }
 
         func draggingSession(_ session: NSDraggingSession, endedAt screenPoint: NSPoint, operation: NSDragOperation) {
-            viewModel?.finishDrag(itemIDs: draggedIDs, operation: operation,
-                                  keepItems: PreferencesStore.shared.keepItemsAfterDrag)
+            let keepItems = PreferencesStore.shared.keepItemsAfterDrag
+            if operation.contains(.move) {
+                viewModel?.finishFileMove(itemIDs: draggedIDs, references: fileReferences, keepItems: keepItems)
+            } else {
+                viewModel?.finishDrag(itemIDs: draggedIDs, operation: operation, keepItems: keepItems)
+            }
             draggedIDs.removeAll()
+            fileReferences.removeAll()
+            requestsMove = false
             WindowManager.shared.dragDidEnd(source: "shelf")
         }
 

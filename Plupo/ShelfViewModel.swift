@@ -65,6 +65,19 @@ class ShelfViewModel: ObservableObject {
         onItemsChanged?()
     }
 
+    func finishFileMove(itemIDs: Set<UUID>, references: [UUID: NSURL], keepItems: Bool) {
+        items = items.compactMap { item in
+            guard itemIDs.contains(item.id) else { return item }
+            guard keepItems || item.isLocked else { return nil }
+            // Finder performs the move. A file reference can follow it within the same volume.
+            guard let url = references[item.id]?.filePathURL else { return nil }
+            var updated = ShelfItem(id: item.id, content: .file(url))
+            updated.isLocked = item.isLocked
+            return updated
+        }
+        onItemsChanged?()
+    }
+
     @discardableResult
     func importClipboard(_ pasteboard: NSPasteboard) -> Bool {
         let priorities: [UTType] = [.fileURL, .url, .image, .plainText]
