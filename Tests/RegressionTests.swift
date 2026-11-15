@@ -45,6 +45,26 @@ struct RegressionTests {
         expect(!visibility.canAutoHide, "A drop error must remain visible until dismissed")
         visibility.hasDropError = false
 
+        let stackModel = ShelfViewModel()
+        let fileProviders = ["One.pdf", "Two.pdf"].map { name in
+            let provider = NSItemProvider()
+            let url = FileManager.default.temporaryDirectory.appendingPathComponent(name)
+            provider.registerDataRepresentation(forTypeIdentifier: UTType.fileURL.identifier, visibility: .all) { done in
+                done(Data(url.absoluteString.utf8), nil)
+                return nil
+            }
+            return provider
+        }
+        let acceptedStack = await load(stackModel, fileProviders)
+        expect(acceptedStack && stackModel.stacks.count == 1, "One drop of multiple files should create one stack")
+        let stack = stackModel.stacks[0]
+        expect(stackModel.stackItems(stack).map(\.title) == ["One.pdf", "Two.pdf"], "Stack drag preserves original drop order")
+        stackModel.toggleStack(stack.id)
+        expect(stackModel.expandedStacks.contains(stack.id), "A stack can expand")
+        stackModel.removeItem(stackModel.items[0])
+        expect(stackModel.stacks.isEmpty && stackModel.expandedStacks.isEmpty && stackModel.items.count == 1,
+               "A stack dissolves when only one file remains")
+
         let model = ShelfViewModel()
         let unsupported = NSItemProvider()
         unsupported.registerDataRepresentation(forTypeIdentifier: "com.plupo.opaque", visibility: .all) { done in

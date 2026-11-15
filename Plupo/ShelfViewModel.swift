@@ -4,8 +4,38 @@ import UniformTypeIdentifiers
 
 class ShelfViewModel: ObservableObject {
     @Published private(set) var items: [ShelfItem] = [] {
-        didSet { selectedIDs.formIntersection(items.map(\.id)) }
+        didSet {
+            let ids = Set(items.map(\.id))
+            selectedIDs.formIntersection(ids)
+            stacks = stacks.compactMap { stack in
+                let members = stack.members.filter { ids.contains($0) }
+                return members.count > 1 ? Stack(id: stack.id, members: members) : nil
+            }
+            expandedStacks.formIntersection(stacks.map(\.id))
+        }
     }
+    struct Stack: Identifiable {
+        let id: UUID
+        let members: [UUID]
+    }
+
+    @Published private(set) var stacks: [Stack] = []
+    @Published private(set) var expandedStacks = Set<UUID>()
+
+    func toggleStack(_ id: UUID) {
+        if expandedStacks.remove(id) == nil { expandedStacks.insert(id) }
+    }
+
+    func splitStack(_ id: UUID) {
+        stacks.removeAll { $0.id == id }
+        expandedStacks.remove(id)
+    }
+
+    func stackItems(_ stack: Stack) -> [ShelfItem] {
+        let members = Set(stack.members)
+        return items.filter { members.contains($0.id) }
+    }
+
     @Published private(set) var selectedIDs = Set<UUID>()
     @Published private(set) var dropError: String?
     private var pendingDrops = 0
@@ -139,7 +169,14 @@ class ShelfViewModel: ObservableObject {
             }
         }
         group.notify(queue: .main) {
-            self.items.append(contentsOf: results.keys.sorted().compactMap { results[$0] })
+            let imported = results.keys.sorted().compactMap { results[$0] }
+            self.items.append(contentsOf: imported)
+            if imported.count > 1, imported.allSatisfy({ item in
+                if case .file = item.content { return true }
+                return false
+            }) {
+                self.stacks.append(Stack(id: UUID(), members: imported.map(\.id)))
+            }
             self.pendingDrops -= 1
             if results.count < providers.count {
                 self.dropError = "Some items could not be added. Try dragging the original file or plain text."

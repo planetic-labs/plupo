@@ -5,6 +5,7 @@ import AppKit
 struct NativeDragSource: NSViewRepresentable {
     let item: ShelfItem
     let viewModel: ShelfViewModel
+    var stack: ShelfViewModel.Stack? = nil
     let preview: () -> Void
 
     func makeNSView(context: Context) -> DragView { DragView() }
@@ -12,10 +13,12 @@ struct NativeDragSource: NSViewRepresentable {
         view.item = item
         view.viewModel = viewModel
         view.preview = preview
+        view.stack = stack
     }
 
     class DragView: NSView, NSDraggingSource {
         var item: ShelfItem?
+        var stack: ShelfViewModel.Stack?
         weak var viewModel: ShelfViewModel?
         var preview: (() -> Void)?
         private var mouseDownPoint: NSPoint?
@@ -28,6 +31,10 @@ struct NativeDragSource: NSViewRepresentable {
 
         override func mouseDown(with event: NSEvent) {
             mouseDownPoint = convert(event.locationInWindow, from: nil)
+            if stack != nil {
+                if event.clickCount == 2 { preview?() }
+                return
+            }
             guard let id = item?.id, let viewModel else { return }
             extendsSelection = event.modifierFlags.contains(.command)
             if !extendsSelection && !viewModel.selectedIDs.contains(id) {
@@ -37,7 +44,7 @@ struct NativeDragSource: NSViewRepresentable {
         }
 
         override func mouseUp(with event: NSEvent) {
-            if mouseDownPoint != nil, let id = item?.id {
+            if stack == nil, mouseDownPoint != nil, let id = item?.id {
                 viewModel?.select(id, extending: extendsSelection)
             }
             mouseDownPoint = nil
@@ -49,7 +56,8 @@ struct NativeDragSource: NSViewRepresentable {
             let point = convert(event.locationInWindow, from: nil)
             guard hypot(point.x - start.x, point.y - start.y) >= 4 else { return }
             guard let viewModel else { return }
-            let payload = viewModel.itemsForDrag(startingAt: item.id).compactMap { candidate in
+            let candidates = stack.map { viewModel.stackItems($0) } ?? viewModel.itemsForDrag(startingAt: item.id)
+            let payload = candidates.compactMap { candidate in
                 candidate.pasteboardWriter().map { (candidate, $0) }
             }
             guard !payload.isEmpty else { return }
@@ -105,6 +113,12 @@ struct NativeDragSource: NSViewRepresentable {
         override func menu(for event: NSEvent) -> NSMenu? {
             guard let item else { return nil }
             let menu = NSMenu()
+            if stack != nil {
+                let entry = NSMenuItem(title: "Split Stack", action: #selector(splitStack), keyEquivalent: "")
+                entry.target = self
+                menu.addItem(entry)
+                return menu
+            }
             for (title, action) in [(item.isLocked ? "Unlock Item" : "Lock Item", #selector(toggleLock)),
                                     ("Quick Look", #selector(showPreview)), ("Remove", #selector(remove))] {
                 let entry = NSMenuItem(title: title, action: action, keyEquivalent: "")
@@ -114,6 +128,7 @@ struct NativeDragSource: NSViewRepresentable {
             return menu
         }
 
+        @objc private func splitStack() { if let stack { viewModel?.splitStack(stack.id) } }
         @objc private func toggleLock() { if let item { viewModel?.toggleLock(for: item) } }
         @objc private func showPreview() { preview?() }
         @objc private func remove() { if let item { viewModel?.removeItem(item) } }

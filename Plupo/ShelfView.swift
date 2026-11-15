@@ -38,12 +38,20 @@ struct ShelfView: View {
                         ScrollViewReader { proxy in
                             LazyVStack(spacing: 8) {
                                 ForEach(viewModel.items) { item in
-                                    ShelfItemView(item: item, viewModel: viewModel)
-                                        .transition(.asymmetric(
-                                            insertion: .move(edge: prefs.position == .left ? .leading : .trailing).combined(with: .opacity),
-                                            removal: .scale(scale: 0.9).combined(with: .opacity)
-                                        ))
-                                        .id(item.id)
+                                    if let stack = viewModel.stacks.first(where: { $0.members.contains(item.id) }) {
+                                        if stack.members.first == item.id {
+                                            stackHeader(stack, first: item)
+                                                .id(stack.id)
+                                        }
+                                        if viewModel.expandedStacks.contains(stack.id) {
+                                            ShelfItemView(item: item, viewModel: viewModel)
+                                                .padding(.leading, 8)
+                                                .id(item.id)
+                                        }
+                                    } else {
+                                        ShelfItemView(item: item, viewModel: viewModel)
+                                            .id(item.id)
+                                    }
                                 }
                             }
                             .padding(8)
@@ -51,7 +59,11 @@ struct ShelfView: View {
                                 // Auto scroll to latest item
                                 if let lastItem = viewModel.items.last {
                                     withAnimation(.easeOut(duration: 0.2)) {
-                                        proxy.scrollTo(lastItem.id, anchor: .bottom)
+                                        let stack = viewModel.stacks.first { $0.members.contains(lastItem.id) }
+                                        let target = stack.flatMap {
+                                            viewModel.expandedStacks.contains($0.id) ? nil : $0.id
+                                        } ?? lastItem.id
+                                        proxy.scrollTo(target, anchor: .bottom)
                                     }
                                 }
                             }
@@ -92,6 +104,31 @@ struct ShelfView: View {
         }
     }
     
+    private func stackHeader(_ stack: ShelfViewModel.Stack, first: ShelfItem) -> some View {
+        let expanded = viewModel.expandedStacks.contains(stack.id)
+        return HStack(spacing: 4) {
+            Label("\(stack.members.count) files", systemImage: "square.stack")
+                .font(.system(size: 11, weight: .semibold))
+                .frame(maxWidth: .infinity, minHeight: 36, alignment: .leading)
+                .contentShape(Rectangle())
+                .overlay {
+                    NativeDragSource(item: first, viewModel: viewModel, stack: stack) {
+                        viewModel.toggleStack(stack.id)
+                    }
+                    .help("Drag the whole stack")
+                }
+            Button {
+                viewModel.toggleStack(stack.id)
+            } label: {
+                Image(systemName: expanded ? "chevron.down" : "chevron.right")
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(expanded ? "Collapse stack" : "Expand stack")
+        }
+        .padding(.horizontal, 8)
+        .background(.primary.opacity(0.07), in: RoundedRectangle(cornerRadius: 10))
+    }
+
     // Header View
     private var headerView: some View {
         HStack {
