@@ -69,6 +69,14 @@ struct WindowRegressionTests {
         let menu = view.menu(for: event)!
         expect(menu.items.first?.title == "Unlock Item", "Locked menu label must offer unlocking")
         expect(menu.items.first?.action == NSSelectorFromString("toggleLock"), "Unlock must invoke the real toggle action")
+        let statusPasteboard = NSPasteboard.withUniqueName()
+        defer { statusPasteboard.releaseGlobally() }
+        let statusFile = FileManager.default.temporaryDirectory.appendingPathComponent("Menu Bar File.pdf")
+        expect(statusPasteboard.writeObjects([statusFile as NSURL]), "The test pasteboard must accept a file URL")
+        let statusProviders = StatusItemDropView.providers(from: statusPasteboard)
+        expect(model.handleDroppedProviders(statusProviders), "The menu bar must pass files to the shared import path")
+        try await settle()
+        expect(model.items.map(\.title) == ["Menu Bar File.pdf"], "The menu bar import must preserve the filename")
         let screenshotFolder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: screenshotFolder, withIntermediateDirectories: false)
         defer { try? FileManager.default.removeItem(at: screenshotFolder) }

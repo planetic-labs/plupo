@@ -50,6 +50,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         if let button = statusItem?.button {
             button.image = NSImage(systemSymbolName: "square.and.arrow.down", accessibilityDescription: "Plupo")
+            button.addSubview(StatusItemDropView(button: button) { providers in
+                WindowManager.shared.shelfViewModel.handleDroppedProviders(providers)
+            })
         }
         
         let menu = NSMenu()
