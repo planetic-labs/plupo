@@ -10,6 +10,7 @@ import ServiceManagement
 
 struct PreferencesView: View {
     @EnvironmentObject var prefs: PreferencesStore
+    @ObservedObject private var shelfShortcut = ShelfShortcut.shared
     @ObservedObject private var screenshots = ScreenshotMonitor.shared
     @ObservedObject private var updates = UpdateChecker.shared
     
@@ -72,6 +73,17 @@ struct PreferencesView: View {
                                     }
                                 }
                                 .pickerStyle(.menu)
+                            }
+                            Picker("Toggle Shelf Shortcut", selection: Binding(
+                                get: { shelfShortcut.choice },
+                                set: { shelfShortcut.apply($0) }
+                            )) {
+                                ForEach(ShelfShortcutChoice.allCases) { choice in
+                                    Text(choice.rawValue).tag(choice)
+                                }
+                            }
+                            if let error = shelfShortcut.errorMessage {
+                                Text(error).font(.caption).foregroundStyle(.red)
                             }
                         }
                         .padding(.vertical, 8)

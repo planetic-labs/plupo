@@ -120,7 +120,7 @@ Current behavior and limitations:
 - Items are removed only after a destination accepts the drag. Cancelled or rejected drags keep the item; locked items and the keep-items preference preserve it.
 - Quick Look previews files, text, and images in a dedicated window. A link preview opens the browser only when you click **Open Link**.
 - Launch at login uses macOS Service Management. Registration and first-launch approval still need manual verification with an installed build, particularly for the ad-hoc-signed downloads.
-- **Manual (Menu Bar)** mode uses the menu bar to toggle the shelf; no system-wide keyboard shortcut is registered.
+- **Manual (Menu Bar)** mode lets you toggle the shelf from the menu bar or with an optional global shortcut. Choose a combination under **Preferences → Position & Behavior → Toggle Shelf Shortcut**.
 - File size and thumbnail metadata are captured when an item is added and are not continuously refreshed.
 
 The current code passes 26 import, drag, and export regression checks plus 9 window and menu checks. These do not replace interactive testing across applications.
