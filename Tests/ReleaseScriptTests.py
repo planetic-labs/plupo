@@ -78,6 +78,20 @@ class ReleaseScriptTests(unittest.TestCase):
         self.assert_untouched()
         self.assertFalse(self.log.exists())
 
+    def test_dry_run_previews_changes_since_previous_tag(self):
+        self.git('tag', 'v0.1.9')
+        self.git('push', 'origin', 'refs/tags/v0.1.9')
+        self.git('commit', '--allow-empty', '-m', 'Add batch dragging', '-m', 'Details stay out of the list.')
+        self.git('commit', '--allow-empty', '-m', 'Add clipboard import')
+        result = self.run_release('--dry-run', '0.1.10')
+        self.assertIn('v0.1.9 → v0.1.10', result.stdout)
+        self.assertLess(result.stdout.index('- Add batch dragging'), result.stdout.index('- Add clipboard import'))
+        self.assertIn('- Release v0.1.10 (commit created during release)', result.stdout)
+        self.assertNotIn('Initial source', result.stdout)
+        self.assertNotIn('Details stay out of the list.', result.stdout)
+        self.assertEqual(self.remote_tags(), ['v0.1.9'])
+        self.assertFalse(self.log.exists())
+
     def test_invalid_and_older_versions_are_rejected(self):
         for value in ['v0.1.10', '0.1', '0.01.10', '0.1.10-beta', '0.1.8']:
             with self.subTest(value=value):
@@ -86,8 +100,11 @@ class ReleaseScriptTests(unittest.TestCase):
 
     def test_dirty_and_untracked_files_are_rejected(self):
         (self.repo / 'unfinished.txt').write_text('work in progress')
+        result = self.run_release('--dry-run', '0.1.10')
+        self.assertIn('Uncommitted changes are excluded', result.stdout)
         self.run_release('0.1.10', success=False)
         self.assert_untouched()
+        self.assertFalse(self.log.exists())
 
     def test_existing_remote_tag_is_rejected_even_when_not_local(self):
         self.git('tag', 'v0.1.10')

@@ -14,13 +14,13 @@ bash scripts/release.sh 0.1.3
 
 The script verifies that the working tree is clean, the current branch is `main`, and local history contains `origin/main`. It checks both local and remote version tags and rejects reused or older versions. It runs `Tests/run.sh` and a local unsigned ARM64 Release build before changing the version. It then updates every Xcode `MARKETING_VERSION`, creates a version commit if needed, creates an annotated tag, and atomically pushes `main` and the tag. Local commits ahead of `origin/main` are included in that push. The version in Xcode and the version used by update checks therefore stay in sync.
 
-To validate the release plan without running tests, building, or changing/publishing anything:
+To preview the commit subjects for the release notes without running tests, building, or publishing:
 
 ```sh
 bash scripts/release.sh --dry-run 0.1.3
 ```
 
-The dry run still needs network access to read remote refs. A failed verification leaves the version and tags untouched. If publication is rejected, the local release commit and tag are kept and the script prints an exact push command to retry after resolving the cause. Do not rerun the whole script with that same version: the existing local tag will correctly block it. No reset, force push, or tag deletion is performed automatically.
+The dry run still needs network access to read remote refs. It previews the Changes section from the latest version tag merged into local HEAD and includes the planned version commit when needed. Keep local tags up to date to match GitHub’s release history. A failed verification leaves the version and tags untouched. If publication is rejected, the local release commit and tag are kept and the script prints an exact push command to retry after resolving the cause. Do not rerun the whole script with that same version: the existing local tag will correctly block it. No reset, force push, or tag deletion is performed automatically.
 
 After a successful push, **Build and release Plupo** builds the public ad-hoc-signed DMG on GitHub and publishes `Plupo-arm64.dmg` and `SHA256SUMS.txt`. The script finishing means publication was triggered; check Actions for the final build/release result. Existing release assets are not silently replaced on a rerun. Install the new DMG to verify the version and update-check behavior.
 

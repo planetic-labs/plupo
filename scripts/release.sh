@@ -19,7 +19,9 @@ for command in git python3 xcodebuild xcrun; do
   command -v "$command" >/dev/null || fail "Required command not found: $command"
 done
 [[ "$(git symbolic-ref --quiet --short HEAD)" == main ]] || fail 'Switch to main before releasing.'
-[[ -z "$(git status --porcelain --untracked-files=all)" ]] || fail 'Commit or set aside all modified and untracked files before releasing.'
+if [[ "$dry_run" == false ]]; then
+  [[ -z "$(git status --porcelain --untracked-files=all)" ]] || fail 'Commit or set aside all modified and untracked files before releasing.'
+fi
 project=Plupo.xcodeproj/project.pbxproj
 [[ -f "$project" && -f Tests/run.sh ]] || fail 'Project or regression checks are missing.'
 git remote get-url origin >/dev/null || fail 'Remote origin is missing.'
@@ -59,6 +61,20 @@ for tag in tags:
 print(f'Release plan: project {current[0]} → {version}; publish {"v" + version}.')
 PY
 if [[ "$dry_run" == true ]]; then
+  previous_tag=$(git tag --merged HEAD --sort=-version:refname | awk '/^v[0-9]+\.[0-9]+\.[0-9]+$/ && !printed { print; printed = 1 }')
+  if [[ -n "$previous_tag" ]]; then
+    printf '\nRelease notes preview (%s → %s)\n\n## Changes\n\n' "$previous_tag" "$tag"
+    git log --reverse --topo-order --format='- %s (%h)' "$previous_tag..HEAD"
+    if ! awk -v version="$version" '$1 == "MARKETING_VERSION" && $3 == version ";" { found = 1 } END { exit !found }' "$project"; then
+      printf -- '- Release %s (commit created during release)\n' "$tag"
+    fi
+  else
+    printf '\nNo previous version tag found in local history. The release workflow adds a Changes section only when a previous tag exists.\n'
+  fi
+  printf '\n'
+  if [[ -n "$(git status --porcelain --untracked-files=all)" ]]; then
+    echo 'Uncommitted changes are excluded from this preview. Commit or set them aside before releasing.'
+  fi
   echo 'Dry run passed. No tests, builds, commits, tags, or pushes were performed.'
   echo 'A real run will test, build, update the Xcode version, commit if needed, and atomically push main and the new tag.'
   exit 0
