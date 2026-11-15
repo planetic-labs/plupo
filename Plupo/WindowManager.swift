@@ -136,8 +136,8 @@ class WindowManager: NSObject {
         scheduleAutoHide()
     }
 
-    func addScreenshots(_ screenshots: [ShelfItem]) {
-        shelfViewModel.addItems(screenshots)
+    func addMonitoredItems(_ items: [ShelfItem]) {
+        shelfViewModel.addItems(items)
         showShelfWindow()
     }
 

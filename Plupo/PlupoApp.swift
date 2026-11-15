@@ -34,11 +34,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         _ = WindowManager.shared
         ShelfShortcut.shared.start()
         ScreenshotMonitor.shared.restore()
+        ScreenshotMonitor.downloads.restore()
         UpdateChecker.shared.start()
     }
     
     func applicationWillTerminate(_ notification: Notification) {
         ShelfShortcut.shared.stop()
+        ScreenshotMonitor.downloads.stop()
         ScreenshotMonitor.shared.stop()
         DragDetector.shared.stopMonitoring()
         PlupoTemporaryFiles.cleanup()

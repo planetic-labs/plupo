@@ -11,6 +11,7 @@ import ServiceManagement
 struct PreferencesView: View {
     @EnvironmentObject var prefs: PreferencesStore
     @ObservedObject private var shelfShortcut = ShelfShortcut.shared
+    @ObservedObject private var downloads = ScreenshotMonitor.downloads
     @ObservedObject private var screenshots = ScreenshotMonitor.shared
     @ObservedObject private var updates = UpdateChecker.shared
     
@@ -145,6 +146,32 @@ struct PreferencesView: View {
                                     .font(.caption).foregroundStyle(.secondary)
                             } else {
                                 Text("Choose the folder where macOS saves screenshots.")
+                                    .font(.caption).foregroundStyle(.secondary)
+                            }
+                        }
+                        .padding(8)
+                    }
+
+                    GroupBox(label: Text("Folder Monitoring").font(.system(size: 11, weight: .bold))) {
+                        VStack(alignment: .leading, spacing: 10) {
+                            Toggle("Add new files to the shelf", isOn: Binding(
+                                get: { downloads.isMonitoring },
+                                set: { downloads.setEnabled($0) }
+                            ))
+                            .disabled(downloads.folder == nil)
+
+                            HStack {
+                                Button(downloads.folder == nil ? "Choose Folder…" : "Change Folder…") {
+                                    downloads.chooseFolder()
+                                }
+                                if let folder = downloads.folder {
+                                    Text(folder.lastPathComponent).lineLimit(1).help(folder.path)
+                                }
+                            }
+                            if let error = downloads.errorMessage {
+                                Text(error).font(.caption).foregroundStyle(.red)
+                            } else {
+                                Text("Choose Downloads or another folder. Only newly added files appear on the shelf.")
                                     .font(.caption).foregroundStyle(.secondary)
                             }
                         }

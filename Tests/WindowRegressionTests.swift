@@ -97,6 +97,20 @@ struct WindowRegressionTests {
         try monitor.start(in: screenshotFolder)
         try await Task.sleep(for: .milliseconds(1300))
         expect(imported.count == 1, "Resuming should skip screenshots already present")
+        monitor.stop()
+        defer {
+            ScreenshotMonitor.shared.stop()
+            ScreenshotMonitor.downloads.stop()
+        }
+        try ScreenshotMonitor.shared.start(in: screenshotFolder)
+        try ScreenshotMonitor.downloads.start(in: screenshotFolder)
+        try writeScreenshot("Shared screenshot.png")
+        try Data([1]).write(to: screenshotFolder.appendingPathComponent("Incomplete.zip.crdownload"))
+        try Data([1]).write(to: screenshotFolder.appendingPathComponent("Finished.zip"))
+        try await Task.sleep(for: .milliseconds(3500))
+        expect(manager.shelfViewModel.items.map(\.title).sorted() == ["Finished.zip", "Shared screenshot.png"],
+               "A shared folder must import a screenshot once, include finished files and skip temporary files")
+        manager.shelfViewModel.clearAll()
         manager.hideShelfWindow()
         print("Passed \(checks) window and menu regression checks")
     }
