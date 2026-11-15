@@ -43,7 +43,7 @@ final class ShelfShortcut: ObservableObject {
 
     private init() {
         choice = UserDefaults.standard.string(forKey: preferenceKey)
-            .flatMap(ShelfShortcutChoice.init(rawValue:)) ?? .disabled
+            .flatMap(ShelfShortcutChoice.init(rawValue:)) ?? .yoink
     }
 
     func start() {
