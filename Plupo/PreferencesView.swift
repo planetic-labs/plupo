@@ -79,7 +79,7 @@ struct PreferencesView: View {
                                 set: { shelfShortcut.apply($0) }
                             )) {
                                 ForEach(ShelfShortcutChoice.allCases) { choice in
-                                    Text(choice.rawValue).tag(choice)
+                                    Text(choice.title).tag(choice)
                                 }
                             }
                             if let error = shelfShortcut.errorMessage {

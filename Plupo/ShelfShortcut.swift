@@ -4,6 +4,7 @@ import Foundation
 
 enum ShelfShortcutChoice: String, CaseIterable, Identifiable {
     case disabled = "Off"
+    case yoink = "F5"
     case commandShiftY = "⌘⇧Y"
     case controlOptionY = "⌃⌥Y"
     case controlOptionSpace = "⌃⌥Space"
@@ -11,9 +12,17 @@ enum ShelfShortcutChoice: String, CaseIterable, Identifiable {
 
     var id: Self { self }
 
+    var title: String {
+        switch self {
+        case .yoink: return "F5 (Yoink)"
+        default: return rawValue
+        }
+    }
+
     var binding: (key: UInt32, modifiers: UInt32)? {
         switch self {
         case .disabled: return nil
+        case .yoink: return (UInt32(kVK_F5), 0)
         case .commandShiftY: return (UInt32(kVK_ANSI_Y), UInt32(cmdKey | shiftKey))
         case .controlOptionY: return (UInt32(kVK_ANSI_Y), UInt32(controlKey | optionKey))
         case .controlOptionSpace: return (UInt32(kVK_Space), UInt32(controlKey | optionKey))
