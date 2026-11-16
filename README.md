@@ -105,6 +105,16 @@ Universal Release builds target both Apple Silicon and Intel with a minimum of m
 
 Use the item's lock button or enable **Keep items on shelf after dragging them out** in preferences when you need to reuse an item. The trash button clears unlocked items; an item's remove button removes it individually.
 
+### Add files from Terminal
+
+Use macOS’s `open` command to add files or folders to the shelf:
+
+```bash
+open -a Plupo -- "./report.pdf" "./Exports"
+```
+
+Plupo opens the shelf with the items. If you have multiple builds installed, use the path to the app in place of `Plupo`.
+
 ## Why Plupo?
 
 Plupo aims to be a small, thoughtfully crafted native Mac utility: simple interactions, minimal interruptions, and a focused native Mac experience. It is free and open source under the MIT license.

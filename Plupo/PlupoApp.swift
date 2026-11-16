@@ -38,6 +38,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
         UpdateChecker.shared.start()
     }
     
+    func application(_ application: NSApplication, open urls: [URL]) {
+        WindowManager.shared.addOpenedFiles(urls)
+    }
+
     func applicationWillTerminate(_ notification: Notification) {
         ShelfShortcut.shared.stop()
         ScreenshotMonitor.downloads.stop()

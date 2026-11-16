@@ -143,6 +143,13 @@ class WindowManager: NSObject {
         return true
     }
 
+    func addOpenedFiles(_ urls: [URL]) {
+        let files = urls.filter(\.isFileURL)
+        guard !files.isEmpty else { return }
+        shelfViewModel.addItems(files.map { ShelfItem(content: .file($0)) })
+        showShelfWindow()
+    }
+
     func addMonitoredItems(_ items: [ShelfItem]) {
         shelfViewModel.addItems(items)
         showShelfWindow()
