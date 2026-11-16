@@ -136,6 +136,13 @@ class WindowManager: NSObject {
         scheduleAutoHide()
     }
 
+    @discardableResult
+    func addFromClipboard() -> Bool {
+        guard shelfViewModel.importClipboard(.general) else { return false }
+        showShelfWindow()
+        return true
+    }
+
     func addMonitoredItems(_ items: [ShelfItem]) {
         shelfViewModel.addItems(items)
         showShelfWindow()

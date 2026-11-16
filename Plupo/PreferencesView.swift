@@ -234,7 +234,18 @@ struct PreferencesView: View {
                     if let error = shelfShortcut.errorMessage {
                         Text(error).font(.caption).foregroundStyle(.red)
                     }
-                    if shelfShortcut.choice == .yoink {
+                    Picker("Add from Clipboard", selection: Binding(
+                        get: { shelfShortcut.clipboardChoice },
+                        set: { shelfShortcut.applyClipboard($0) }
+                    )) {
+                        ForEach(ClipboardShortcutChoice.allCases) { choice in
+                            Text(choice.rawValue).tag(choice)
+                        }
+                    }
+                    if let error = shelfShortcut.clipboardError {
+                        Text(error).font(.caption).foregroundStyle(.red)
+                    }
+                    if shelfShortcut.choice == .yoink || shelfShortcut.clipboardChoice == .doubleF5 {
                         Text("If F5 controls a system feature, press Fn–F5.")
                             .font(.caption).foregroundStyle(.secondary)
                     }

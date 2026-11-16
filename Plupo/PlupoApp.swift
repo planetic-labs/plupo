@@ -74,10 +74,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
     }
     
     @objc func addFromClipboard() {
-        let manager = WindowManager.shared
-        if manager.shelfViewModel.importClipboard(.general) {
-            manager.showShelfWindow()
-        } else {
+        if !WindowManager.shared.addFromClipboard() {
             let alert = NSAlert()
             alert.messageText = "No supported items in the clipboard"
             alert.informativeText = "Copy a file, link, image, or plain text and try again."

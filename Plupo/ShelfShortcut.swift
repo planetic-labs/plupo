@@ -31,11 +31,36 @@ enum ShelfShortcutChoice: String, CaseIterable, Identifiable {
     }
 }
 
+enum ClipboardShortcutChoice: String, CaseIterable, Identifiable {
+    case doubleF5 = "F5 twice (Yoink)"
+    case dropover = "⌥⇧A (Dropover)"
+    case controlOptionA = "⌃⌥A"
+    case disabled = "Off"
+
+    var id: Self { self }
+
+    var binding: (key: UInt32, modifiers: UInt32)? {
+        switch self {
+        case .doubleF5: return ShelfShortcutChoice.yoink.binding
+        case .dropover: return (UInt32(kVK_ANSI_A), UInt32(optionKey | shiftKey))
+        case .controlOptionA: return (UInt32(kVK_ANSI_A), UInt32(controlKey | optionKey))
+        case .disabled: return nil
+        }
+    }
+}
+
 final class ShelfShortcut: ObservableObject {
     static let shared = ShelfShortcut()
 
     @Published private(set) var choice: ShelfShortcutChoice
     @Published private(set) var errorMessage: String?
+
+    @Published private(set) var clipboardChoice: ClipboardShortcutChoice
+    @Published private(set) var clipboardError: String?
+
+    private let clipboardPreferenceKey = "clipboardGlobalShortcut"
+    private var clipboardHotKey: EventHotKeyRef?
+    private var pendingF5: Task<Void, Never>?
 
     private let preferenceKey = "shelfGlobalShortcut"
     private var hotKey: EventHotKeyRef?
@@ -44,20 +69,27 @@ final class ShelfShortcut: ObservableObject {
     private init() {
         choice = UserDefaults.standard.string(forKey: preferenceKey)
             .flatMap(ShelfShortcutChoice.init(rawValue:)) ?? .yoink
+        clipboardChoice = UserDefaults.standard.string(forKey: clipboardPreferenceKey)
+            .flatMap(ClipboardShortcutChoice.init(rawValue:)) ?? .doubleF5
     }
 
     func start() {
         apply(choice)
+        refreshClipboardRegistration()
     }
 
     func apply(_ newChoice: ShelfShortcutChoice) {
         errorMessage = nil
         if newChoice == choice, hotKey != nil { return }
 
+        if newChoice == .yoink && clipboardChoice == .doubleF5 {
+            unregisterClipboard()
+        }
         var newHotKey: EventHotKeyRef?
         if let binding = newChoice.binding {
             guard installHandler() else {
                 errorMessage = "Plupo couldn’t start keyboard shortcut handling."
+                refreshClipboardRegistration()
                 return
             }
             let id = EventHotKeyID(signature: 0x504C5550, id: 1)
@@ -65,6 +97,7 @@ final class ShelfShortcut: ObservableObject {
                                              GetApplicationEventTarget(), 0, &newHotKey)
             guard status == noErr, newHotKey != nil else {
                 errorMessage = "This shortcut is unavailable. Choose a different one."
+                refreshClipboardRegistration()
                 return
             }
         }
@@ -73,9 +106,77 @@ final class ShelfShortcut: ObservableObject {
         hotKey = newHotKey
         choice = newChoice
         UserDefaults.standard.set(newChoice.rawValue, forKey: preferenceKey)
+        refreshClipboardRegistration()
+    }
+
+    func applyClipboard(_ newChoice: ClipboardShortcutChoice) {
+        let previous = clipboardChoice
+        clipboardChoice = newChoice
+        refreshClipboardRegistration()
+        if let failure = clipboardError {
+            clipboardChoice = previous
+            refreshClipboardRegistration()
+            clipboardError = failure
+        } else {
+            UserDefaults.standard.set(newChoice.rawValue, forKey: clipboardPreferenceKey)
+        }
+    }
+
+    private func unregisterClipboard() {
+        pendingF5?.cancel()
+        pendingF5 = nil
+        if let clipboardHotKey { UnregisterEventHotKey(clipboardHotKey) }
+        clipboardHotKey = nil
+    }
+
+    private func refreshClipboardRegistration() {
+        unregisterClipboard()
+        clipboardError = nil
+        guard let binding = clipboardChoice.binding else { return }
+        if clipboardChoice == .doubleF5, choice == .yoink, hotKey != nil { return }
+        if clipboardChoice == .doubleF5, choice == .yoink {
+            clipboardError = "F5 is unavailable. Choose another shortcut."
+            return
+        }
+        let id = EventHotKeyID(signature: 0x504C5550, id: 2)
+        guard installHandler(),
+              RegisterEventHotKey(binding.key, binding.modifiers, id, GetApplicationEventTarget(), 0, &clipboardHotKey) == noErr,
+              clipboardHotKey != nil else {
+            if clipboardChoice == .dropover {
+                clipboardError = "Option–Shift–A is unavailable. On macOS 15 or later, try Control–Option–A."
+            } else {
+                clipboardError = "This shortcut is unavailable. Choose a different one."
+            }
+            return
+        }
+    }
+
+    private func handleHotKey(_ id: UInt32) {
+        let togglesShelf = id == 1
+        guard togglesShelf ? hotKey != nil : clipboardHotKey != nil else { return }
+        let isF5 = togglesShelf ? choice == .yoink : clipboardChoice == .doubleF5
+        guard isF5 && clipboardChoice == .doubleF5 else {
+            if togglesShelf { WindowManager.shared.toggleShelfWindow() }
+            else { WindowManager.shared.addFromClipboard() }
+            return
+        }
+        if let pendingF5 {
+            pendingF5.cancel()
+            self.pendingF5 = nil
+            WindowManager.shared.addFromClipboard()
+        } else {
+            pendingF5 = Task { [weak self] in
+                do { try await Task.sleep(for: .milliseconds(300)) }
+                catch { return }
+                guard let self else { return }
+                self.pendingF5 = nil
+                if togglesShelf { WindowManager.shared.toggleShelfWindow() }
+            }
+        }
     }
 
     func stop() {
+        unregisterClipboard()
         if let hotKey { UnregisterEventHotKey(hotKey) }
         if let handler { RemoveEventHandler(handler) }
         hotKey = nil
@@ -91,11 +192,12 @@ final class ShelfShortcut: ObservableObject {
             let status = GetEventParameter(event, EventParamName(kEventParamDirectObject),
                                            EventParamType(typeEventHotKeyID), nil,
                                            MemoryLayout<EventHotKeyID>.size, nil, &id)
-            guard status == noErr, id.signature == 0x504C5550, id.id == 1 else {
+            guard status == noErr, id.signature == 0x504C5550, (id.id == 1 || id.id == 2) else {
                 return OSStatus(eventNotHandledErr)
             }
+            let hotKeyID = id.id
             DispatchQueue.main.async {
-                WindowManager.shared.toggleShelfWindow()
+                ShelfShortcut.shared.handleHotKey(hotKeyID)
             }
             return noErr
         }, 1, &event, nil, &handler)
