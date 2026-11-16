@@ -127,7 +127,7 @@ The current code passes 26 import, drag, and export regression checks plus 9 win
 
 ## Privacy
 
-Plupo checks GitHub for new releases automatically, at most once a day while running, and when you choose **Check for Updates…**. You can disable automatic checks in Preferences. Requests go to GitHub and include standard connection information such as your IP address; shelf contents and local file paths are never included. There is no analytics code. Shelf contents are held in memory, and preferences are stored locally in UserDefaults. Dragging text or images out creates temporary export files with restricted permissions; these are removed on normal exit or the next launch. A crash can leave them on disk until that next launch. Opening a link or file hands it to its associated application.
+Plupo checks GitHub for new releases automatically when the app starts and when you choose **Check for Updates…**. You can disable automatic checks in Preferences. Requests go to GitHub and include standard connection information such as your IP address; shelf contents and local file paths are never included. There is no analytics code. Shelf contents are held in memory, and preferences are stored locally in UserDefaults. Dragging text or images out creates temporary export files with restricted permissions; these are removed on normal exit or the next launch. A crash can leave them on disk until that next launch. Opening a link or file hands it to its associated application.
 
 Changing the bundle identifier does not migrate preferences from the previous identifier.
 

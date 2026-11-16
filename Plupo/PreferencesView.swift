@@ -180,8 +180,8 @@ struct PreferencesView: View {
 
                     GroupBox(label: Text("Updates").font(.system(size: 11, weight: .bold))) {
                         VStack(alignment: .leading, spacing: 10) {
-                            Toggle("Automatically check for updates", isOn: $updates.automaticallyChecks)
-                            Text("Checks GitHub once a day. Updates are downloaded and installed manually.")
+                            Toggle("Check for updates on launch", isOn: $updates.automaticallyChecks)
+                            Text("Checks GitHub when Plupo starts. Updates are downloaded and installed manually.")
                                 .font(.caption).foregroundStyle(.secondary)
                             Button(updates.isChecking ? "Checking…" : "Check for Updates…") {
                                 updates.check()

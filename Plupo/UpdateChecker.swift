@@ -29,7 +29,7 @@ struct PublishedRelease: Decodable {
 
     func newerVersion(than current: String) -> ReleaseVersion? {
         guard !draft, !prerelease,
-              assets.contains(where: { $0.name == "Plupo-arm64.dmg" }),
+              assets.contains(where: { $0.name == "Plupo-universal.dmg" || $0.name == "Plupo-arm64.dmg" }),
               let remote = ReleaseVersion(tag_name), let installed = ReleaseVersion(current),
               remote > installed else { return nil }
         return remote
@@ -41,12 +41,11 @@ final class UpdateChecker: ObservableObject {
     static let shared = UpdateChecker()
     static let releasesURL = URL(string: "https://github.com/planetic-labs/plupo/releases/latest")!
     private let defaults = UserDefaults.standard
-    private var timer: Timer?
+    private var didStart = false
     @Published private(set) var isChecking = false
     @Published var automaticallyChecks: Bool {
         didSet {
             defaults.set(automaticallyChecks, forKey: "automaticallyChecksForUpdates")
-            if automaticallyChecks { checkAutomatically() }
         }
     }
 
@@ -55,24 +54,14 @@ final class UpdateChecker: ObservableObject {
     }
 
     func start() {
-        checkAutomatically()
-        timer = Timer.scheduledTimer(withTimeInterval: 3600, repeats: true) { [weak self] _ in
-            guard let checker = self else { return }
-            Task { @MainActor in checker.checkAutomatically() }
-        }
-    }
-
-    func checkAutomatically() {
-        guard automaticallyChecks else { return }
-        let lastAttempt = defaults.object(forKey: "lastUpdateAttempt") as? Date ?? .distantPast
-        guard Date().timeIntervalSince(lastAttempt) >= 24 * 60 * 60 else { return }
-        check(manual: false)
+        guard !didStart else { return }
+        didStart = true
+        if automaticallyChecks { check(manual: false) }
     }
 
     func check(manual: Bool = true) {
         guard !isChecking else { return }
         isChecking = true
-        defaults.set(Date(), forKey: "lastUpdateAttempt")
         Task {
             defer { isChecking = false }
             do {
