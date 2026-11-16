@@ -105,6 +105,10 @@ Universal Release builds target both Apple Silicon and Intel with a minimum of m
 
 Use the item's lock button or enable **Keep items on shelf after dragging them out** in preferences when you need to reuse an item. The trash button clears unlocked items; an item's remove button removes it individually.
 
+### Add files from the Share menu
+
+Select one or more files in Finder and choose **Share → Add to Plupo**. Confirm in the share window to send the files to the shelf. If the action is hidden, enable it under **More…** in the Share menu.
+
 ### Add files from Terminal
 
 Use macOS’s `open` command to add files or folders to the shelf:

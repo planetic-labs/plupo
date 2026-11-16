@@ -6,8 +6,21 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		8820AABB0000000000000006 = {isa = PBXBuildFile; fileRef = 8820AABB0000000000000001; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, );};};
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		8820AABB0000000000000008 = {isa = PBXContainerItemProxy; containerPortal = 1797632E2FD449900025FC6C; proxyType = 1; remoteGlobalIDString = 8820AABB0000000000000003; remoteInfo = PlupoShare;};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		8820AABB0000000000000005 = {isa = PBXCopyFilesBuildPhase; buildActionMask = 2147483647; dstPath = ""; dstSubfolderSpec = 13; files = (8820AABB0000000000000006, ); name = "Embed App Extensions"; runOnlyForDeploymentPostprocessing = 0;};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		179763362FD449900025FC6C /* Plupo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Plupo.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		8820AABB0000000000000001 = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; path = PlupoShare.appex; sourceTree = BUILT_PRODUCTS_DIR;};
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -16,6 +29,7 @@
 			path = Plupo;
 			sourceTree = "<group>";
 		};
+		8820AABB0000000000000002 = {isa = PBXFileSystemSynchronizedRootGroup; path = PlupoShare; sourceTree = "<group>";};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -32,6 +46,7 @@
 		1797632D2FD449900025FC6C = {
 			isa = PBXGroup;
 			children = (
+				8820AABB0000000000000002,
 				179763382FD449900025FC6C /* Plupo */,
 				179763372FD449900025FC6C /* Products */,
 			);
@@ -40,6 +55,7 @@
 		179763372FD449900025FC6C /* Products */ = {
 			isa = PBXGroup;
 			children = (
+				8820AABB0000000000000001,
 				179763362FD449900025FC6C /* Plupo.app */,
 			);
 			name = Products;
@@ -54,11 +70,13 @@
 			buildPhases = (
 				179763322FD449900025FC6C /* Sources */,
 				179763332FD449900025FC6C /* Frameworks */,
+				8820AABB0000000000000005,
 				179763342FD449900025FC6C /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				8820AABB0000000000000007,
 			);
 			fileSystemSynchronizedGroups = (
 				179763382FD449900025FC6C /* Plupo */,
@@ -69,6 +87,18 @@
 			productName = Plupo;
 			productReference = 179763362FD449900025FC6C /* Plupo.app */;
 			productType = "com.apple.product-type.application";
+		};
+		8820AABB0000000000000003 = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 8820AABB0000000000000009;
+			buildPhases = (8820AABB0000000000000004, );
+			buildRules = ();
+			dependencies = ();
+			fileSystemSynchronizedGroups = (8820AABB0000000000000002, );
+			name = PlupoShare;
+			productName = PlupoShare;
+			productReference = 8820AABB0000000000000001;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -99,6 +129,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
+				8820AABB0000000000000003,
 				179763352FD449900025FC6C /* Plupo */,
 			);
 		};
@@ -122,7 +153,12 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		8820AABB0000000000000004 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0;};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		8820AABB0000000000000007 = {isa = PBXTargetDependency; target = 8820AABB0000000000000003; targetProxy = 8820AABB0000000000000008;};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		1797633F2FD449930025FC6C /* Debug */ = {
@@ -180,6 +216,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PLUPO_BUNDLE_IDENTIFIER = org.plupo.Plupo;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -239,6 +276,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PLUPO_BUNDLE_IDENTIFIER = org.plupo.Plupo;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = macosx;
@@ -271,7 +309,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MARKETING_VERSION = 0.1.7;
-				PRODUCT_BUNDLE_IDENTIFIER = org.plupo.Plupo;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(PLUPO_BUNDLE_IDENTIFIER)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -307,7 +345,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MARKETING_VERSION = 0.1.7;
-				PRODUCT_BUNDLE_IDENTIFIER = org.plupo.Plupo;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(PLUPO_BUNDLE_IDENTIFIER)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -315,6 +353,44 @@
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		8820AABB000000000000000A = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = scripts/share.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "PlupoShare-Info.plist";
+				MARKETING_VERSION = 0.1.7;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(PLUPO_BUNDLE_IDENTIFIER).Share";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		8820AABB000000000000000B = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = scripts/share.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "PlupoShare-Info.plist";
+				MARKETING_VERSION = 0.1.7;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(PLUPO_BUNDLE_IDENTIFIER).Share";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
 				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
@@ -340,6 +416,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		8820AABB0000000000000009 = {isa = XCConfigurationList; buildConfigurations = (8820AABB000000000000000A, 8820AABB000000000000000B, ); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release;};
 /* End XCConfigurationList section */
 	};
 	rootObject = 1797632E2FD449900025FC6C /* Project object */;
