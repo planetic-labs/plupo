@@ -14,33 +14,11 @@ struct PreferencesView: View {
     @ObservedObject private var downloads = ScreenshotMonitor.downloads
     @ObservedObject private var screenshots = ScreenshotMonitor.shared
     @ObservedObject private var updates = UpdateChecker.shared
-    
+
     var body: some View {
         VStack(spacing: 0) {
-            // Header Settings Banner
-            HStack(spacing: 12) {
-                Image(systemName: "square.and.arrow.down.on.square.fill")
-                    .font(.system(size: 32))
-                    .foregroundColor(.accentColor)
-                
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Plupo")
-                        .font(.system(size: 16, weight: .bold, design: .rounded))
-                    Text("Power up your drag-and-drop workflow.")
-                        .font(.system(size: 11))
-                        .foregroundColor(.secondary)
-                }
-                Spacer()
-            }
-            .padding(20)
-            .background(Color.primary.opacity(0.03))
-            
-            Divider()
-            
-            // Preferences Form
-            ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
-                    // Section 1: Window Position & Behavior
+            TabView {
+                preferencesPage {
                     GroupBox(label: Text("Position & Behavior").font(.system(size: 11, weight: .bold))) {
                         VStack(alignment: .leading, spacing: 12) {
                             HStack {
@@ -53,7 +31,7 @@ struct PreferencesView: View {
                                 }
                                 .pickerStyle(.segmented)
                             }
-                            
+
                             HStack {
                                 Text("Alignment:")
                                     .frame(width: 110, alignment: .leading)
@@ -64,7 +42,7 @@ struct PreferencesView: View {
                                 }
                                 .pickerStyle(.segmented)
                             }
-                            
+
                             HStack {
                                 Text("Show Shelf:")
                                     .frame(width: 110, alignment: .leading)
@@ -75,23 +53,11 @@ struct PreferencesView: View {
                                 }
                                 .pickerStyle(.menu)
                             }
-                            Picker("Toggle Shelf Shortcut", selection: Binding(
-                                get: { shelfShortcut.choice },
-                                set: { shelfShortcut.apply($0) }
-                            )) {
-                                ForEach(ShelfShortcutChoice.allCases) { choice in
-                                    Text(choice.title).tag(choice)
-                                }
-                            }
-                            if let error = shelfShortcut.errorMessage {
-                                Text(error).font(.caption).foregroundStyle(.red)
-                            }
+
                         }
                         .padding(.vertical, 8)
                         .padding(.horizontal, 4)
                     }
-                    
-                    // Section 2: Items & Dragging
                     GroupBox(label: Text("Items & Dragging").font(.system(size: 11, weight: .bold))) {
                         VStack(alignment: .leading, spacing: 12) {
                             HStack {
@@ -104,10 +70,10 @@ struct PreferencesView: View {
                                 }
                                 .pickerStyle(.segmented)
                             }
-                            
+
                             Toggle("Keep items on shelf after dragging them out", isOn: $prefs.keepItemsAfterDrag)
                                 .font(.system(size: 11))
-                            
+
                             Text("By default, items are automatically removed from Plupo when you drag them into another application.")
                                 .font(.system(size: 10))
                                 .foregroundColor(.secondary)
@@ -116,7 +82,10 @@ struct PreferencesView: View {
                         .padding(.vertical, 8)
                         .padding(.horizontal, 4)
                     }
-                    
+                }
+                .tabItem { Label("Shelf", systemImage: "rectangle.righthalf.inset.filled") }
+
+                preferencesPage {
                     GroupBox(label: Text("Screenshots").font(.system(size: 11, weight: .bold))) {
                         VStack(alignment: .leading, spacing: 10) {
                             Toggle("Add new screenshots to the shelf", isOn: Binding(
@@ -151,7 +120,6 @@ struct PreferencesView: View {
                         }
                         .padding(8)
                     }
-
                     GroupBox(label: Text("Folder Monitoring").font(.system(size: 11, weight: .bold))) {
                         VStack(alignment: .leading, spacing: 10) {
                             Toggle("Add new files to the shelf", isOn: Binding(
@@ -177,26 +145,20 @@ struct PreferencesView: View {
                         }
                         .padding(8)
                     }
+                }
+                .tabItem { Label("Monitoring", systemImage: "folder") }
 
-                    GroupBox(label: Text("Updates").font(.system(size: 11, weight: .bold))) {
-                        VStack(alignment: .leading, spacing: 10) {
-                            Toggle("Check for updates on launch", isOn: $updates.automaticallyChecks)
-                            Text("Checks GitHub when Plupo starts. Updates are downloaded and installed manually.")
-                                .font(.caption).foregroundStyle(.secondary)
-                            Button(updates.isChecking ? "Checking…" : "Check for Updates…") {
-                                updates.check()
-                            }
-                            .disabled(updates.isChecking)
-                        }
-                        .padding(8)
-                    }
+                preferencesPage {
+                    shortcutSettings
+                }
+                .tabItem { Label("Shortcuts", systemImage: "keyboard") }
 
-                    // Section 3: General System
+                preferencesPage {
                     GroupBox(label: Text("System").font(.system(size: 11, weight: .bold))) {
                         VStack(alignment: .leading, spacing: 10) {
                             Toggle("Launch Plupo at login", isOn: Binding(get: { prefs.launchAtLogin }, set: { prefs.setLaunchAtLogin($0) }))
                                 .font(.system(size: 11))
-                            
+
                             if prefs.loginRequiresApproval {
                                 Button("Allow in System Settings…") {
                                     SMAppService.openSystemSettingsLoginItems()
@@ -214,28 +176,96 @@ struct PreferencesView: View {
                         .padding(.vertical, 8)
                         .padding(.horizontal, 4)
                     }
+                    GroupBox(label: Text("Updates").font(.system(size: 11, weight: .bold))) {
+                        VStack(alignment: .leading, spacing: 10) {
+                            Toggle("Check for updates on launch", isOn: $updates.automaticallyChecks)
+                            Text("Checks GitHub when Plupo starts. Updates are downloaded and installed manually.")
+                                .font(.caption).foregroundStyle(.secondary)
+                            Button(updates.isChecking ? "Checking…" : "Check for Updates…") {
+                                updates.check()
+                            }
+                            .disabled(updates.isChecking)
+                        }
+                        .padding(8)
+                    }
                 }
-                .padding(20)
+                .tabItem { Label("General", systemImage: "gearshape") }
             }
-            
+            .padding(.horizontal, 12)
+            .padding(.top, 12)
+
             Divider()
-            
-            // Bottom bar
+
             HStack {
                 Spacer()
-                Button("Done") {
-                    // Close the window using the WindowManager or standard NSApp closing
-                    NSApp.keyWindow?.close()
-                }
-                .buttonStyle(.borderedProminent)
-                .keyboardShortcut(.defaultAction)
+                Button("Done") { NSApp.keyWindow?.close() }
+                    .buttonStyle(.borderedProminent)
+                    .keyboardShortcut(.defaultAction)
             }
             .padding(16)
         }
-        .frame(width: 450, height: 460)
+        .frame(width: 500, height: 420)
         .onAppear { prefs.refreshLoginStatus() }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
             prefs.refreshLoginStatus()
+        }
+    }
+
+    private func preferencesPage<Content: View>(@ViewBuilder content: () -> Content) -> some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16, content: content)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(12)
+        }
+    }
+
+    private var shortcutSettings: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            GroupBox("Global") {
+                VStack(alignment: .leading, spacing: 8) {
+                    Picker("Toggle Shelf Shortcut", selection: Binding(
+                        get: { shelfShortcut.choice },
+                        set: { shelfShortcut.apply($0) }
+                    )) {
+                        ForEach(ShelfShortcutChoice.allCases) { choice in
+                            Text(choice.title).tag(choice)
+                        }
+                    }
+                    if let error = shelfShortcut.errorMessage {
+                        Text(error).font(.caption).foregroundStyle(.red)
+                    }
+                    if shelfShortcut.choice == .yoink {
+                        Text("If F5 controls a system feature, press Fn–F5.")
+                            .font(.caption).foregroundStyle(.secondary)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(8)
+            }
+
+            GroupBox("Menu and Preferences") {
+                VStack(spacing: 8) {
+                    shortcutRow("Toggle shelf (Plupo menu)", keys: "⌘Y")
+                    shortcutRow("Open Preferences", keys: "⌘,")
+                    shortcutRow("Quit Plupo", keys: "⌘Q")
+                    shortcutRow("Close Preferences", keys: "Return")
+                }
+                .padding(8)
+            }
+
+            GroupBox("Shelf gestures") {
+                VStack(spacing: 8) {
+                    shortcutRow("Select multiple cards", keys: "⌘-click")
+                    shortcutRow("Move original files", keys: "⌘-drag from shelf")
+                }
+                .padding(8)
+            }
+        }
+    }
+
+    private func shortcutRow(_ action: String, keys: String) -> some View {
+        LabeledContent(action) {
+            Text(keys).monospaced()
         }
     }
 }
