@@ -36,6 +36,51 @@ class ShelfViewModel: ObservableObject {
         return items.filter { members.contains($0.id) }
     }
 
+    private struct RemovedBatch {
+        let entries: [(index: Int, item: ShelfItem)]
+        let stacks: [Stack]
+        let expandedStacks: Set<UUID>
+    }
+
+    private var lastRemoved: RemovedBatch?
+    var canRestoreLastRemoved: Bool { lastRemoved != nil }
+
+    private func rememberRemoval(_ entries: [(index: Int, item: ShelfItem)]) {
+        guard !entries.isEmpty else { return }
+        let removedIDs = Set(entries.map { $0.item.id })
+        let affectedStacks = stacks.filter { !removedIDs.isDisjoint(with: $0.members) }
+        lastRemoved = RemovedBatch(entries: entries, stacks: affectedStacks, expandedStacks: expandedStacks)
+    }
+
+    @discardableResult
+    func restoreLastRemoved() -> Bool {
+        guard let batch = lastRemoved else { return false }
+        lastRemoved = nil
+        var restored = items
+        for entry in batch.entries {
+            restored.insert(entry.item, at: min(entry.index, restored.count))
+        }
+        items = restored
+        let ids = Set(items.map(\.id))
+        for stack in batch.stacks {
+            let members = stack.members.filter { ids.contains($0) }
+            guard members.count > 1 else { continue }
+            stacks.removeAll { $0.id == stack.id }
+            stacks.append(Stack(id: stack.id, members: members))
+            if batch.expandedStacks.contains(stack.id) { expandedStacks.insert(stack.id) }
+        }
+        onItemsChanged?()
+        return true
+    }
+
+    private func removeItems(where shouldRemove: (ShelfItem) -> Bool) {
+        let removed = items.enumerated().filter { shouldRemove($0.element) }
+        guard !removed.isEmpty else { return }
+        rememberRemoval(removed.map { (index: $0.offset, item: $0.element) })
+        items.removeAll(where: shouldRemove)
+        onItemsChanged?()
+    }
+
     @Published private(set) var selectedIDs = Set<UUID>()
     @Published private(set) var dropError: String?
     private var pendingDrops = 0
@@ -59,8 +104,7 @@ class ShelfViewModel: ObservableObject {
     }
 
     func removeItem(_ item: ShelfItem) {
-        items.removeAll { $0.id == item.id }
-        onItemsChanged?()
+        removeItems { $0.id == item.id }
     }
 
     func dismissDropError() {
@@ -69,8 +113,7 @@ class ShelfViewModel: ObservableObject {
     }
 
     func clearAll() {
-        items.removeAll { !$0.isLocked }
-        onItemsChanged?()
+        removeItems { !$0.isLocked }
     }
 
     func select(_ id: UUID, extending: Bool) {
@@ -91,20 +134,23 @@ class ShelfViewModel: ObservableObject {
 
     func finishDrag(itemIDs: Set<UUID>, operation: NSDragOperation, keepItems: Bool) {
         guard !operation.isEmpty, !keepItems else { return }
-        items.removeAll { itemIDs.contains($0.id) && !$0.isLocked }
-        onItemsChanged?()
+        removeItems { itemIDs.contains($0.id) && !$0.isLocked }
     }
 
     func finishFileMove(itemIDs: Set<UUID>, references: [UUID: NSURL], keepItems: Bool) {
-        items = items.compactMap { item in
+        var removed: [(index: Int, item: ShelfItem)] = []
+        let remaining = items.enumerated().compactMap { index, item -> ShelfItem? in
             guard itemIDs.contains(item.id) else { return item }
-            guard keepItems || item.isLocked else { return nil }
-            // Finder performs the move. A file reference can follow it within the same volume.
+            // A file reference can follow a Finder move within the same volume.
             guard let url = references[item.id]?.filePathURL else { return nil }
             var updated = ShelfItem(id: item.id, content: .file(url))
             updated.isLocked = item.isLocked
-            return updated
+            if keepItems || item.isLocked { return updated }
+            removed.append((index, updated))
+            return nil
         }
+        rememberRemoval(removed)
+        items = remaining
         onItemsChanged?()
     }
 

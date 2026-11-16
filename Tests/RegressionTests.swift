@@ -65,6 +65,18 @@ struct RegressionTests {
         expect(stackModel.stacks.isEmpty && stackModel.expandedStacks.isEmpty && stackModel.items.count == 1,
                "A stack dissolves when only one file remains")
 
+        expect(stackModel.restoreLastRemoved() && stackModel.stacks.count == 1,
+               "Restoring a removed stack member should rebuild its group")
+        let stackIDs = Set(stackModel.items.map(\.id))
+        stackModel.finishDrag(itemIDs: stackIDs, operation: [], keepItems: false)
+        expect(!stackModel.canRestoreLastRemoved && stackModel.items.count == 2,
+               "Cancelling a drag should not record a removal")
+        stackModel.finishDrag(itemIDs: stackIDs, operation: .copy, keepItems: false)
+        expect(stackModel.items.isEmpty && stackModel.restoreLastRemoved(), "Restore the entire last drag")
+        expect(stackModel.items.map(\.title) == ["One.pdf", "Two.pdf"] && stackModel.stacks.count == 1,
+               "Restoring a batch should keep the order and stack")
+        expect(!stackModel.restoreLastRemoved(), "Restore is consumed once")
+
         let model = ShelfViewModel()
         let unsupported = NSItemProvider()
         unsupported.registerDataRepresentation(forTypeIdentifier: "com.plupo.opaque", visibility: .all) { done in

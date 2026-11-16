@@ -15,7 +15,7 @@ struct PlupoApp: App {
     }
 }
 
-class AppDelegate: NSObject, NSApplicationDelegate {
+class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
     var statusItem: NSStatusItem?
     
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -58,6 +58,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let menu = NSMenu()
         menu.addItem(NSMenuItem(title: "Toggle Shelf", action: #selector(toggleShelf), keyEquivalent: "y"))
         menu.addItem(NSMenuItem(title: "Add from Clipboard", action: #selector(addFromClipboard), keyEquivalent: ""))
+        menu.addItem(NSMenuItem(title: "Restore Last Removed", action: #selector(restoreLastRemoved), keyEquivalent: ""))
         menu.addItem(NSMenuItem.separator())
         menu.addItem(NSMenuItem(title: "Check for Updates…", action: #selector(checkForUpdates), keyEquivalent: ""))
         menu.addItem(NSMenuItem(title: "Preferences...", action: #selector(showPreferences), keyEquivalent: ","))
@@ -82,6 +83,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             alert.informativeText = "Copy a file, link, image, or plain text and try again."
             alert.runModal()
         }
+    }
+
+    func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
+        if menuItem.action == #selector(restoreLastRemoved) {
+            return WindowManager.shared.shelfViewModel.canRestoreLastRemoved
+        }
+        return true
+    }
+
+    @objc func restoreLastRemoved() {
+        let manager = WindowManager.shared
+        if manager.shelfViewModel.restoreLastRemoved() { manager.showShelfWindow() }
     }
 
     @objc func showPreferences() {
