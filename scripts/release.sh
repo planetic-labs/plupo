@@ -64,10 +64,10 @@ if [[ "$dry_run" == true ]]; then
   previous_tag=$(git tag --merged HEAD --sort=-version:refname | awk '/^v[0-9]+\.[0-9]+\.[0-9]+$/ && !printed { print; printed = 1 }')
   if [[ -n "$previous_tag" ]]; then
     printf '\nRelease notes preview (%s → %s)\n\n## Changes\n\n' "$previous_tag" "$tag"
-    git log --reverse --topo-order --format='- %s (%h)' "$previous_tag..HEAD"
-    if ! awk -v version="$version" '$1 == "MARKETING_VERSION" && $3 == version ";" { found = 1 } END { exit !found }' "$project"; then
-      printf -- '- Release %s (commit created during release)\n' "$tag"
-    fi
+    git log --reverse --topo-order --format='%h%x09%s' "$previous_tag..HEAD" |
+      awk -F '\t' '$2 !~ /^Release v[0-9]+\.[0-9]+\.[0-9]+$/ {
+        printf "- %s (%s)\n", substr($0, length($1) + 2), $1
+      }'
   else
     printf '\nNo previous version tag found in local history. The release workflow adds a Changes section only when a previous tag exists.\n'
   fi

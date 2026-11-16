@@ -107,7 +107,7 @@ Use the item's lock button or enable **Keep items on shelf after dragging them o
 
 ### Add files from the Share menu
 
-Select one or more files in Finder and choose **Share → Add to Plupo**. Confirm in the share window to send the files to the shelf. If the action is hidden, enable it under **More…** in the Share menu.
+Select one or more files in Finder and choose **Share → Add to Plupo**. Plupo adds the files to the shelf as soon as you choose the action. If the action is hidden, enable it under **More…** in the Share menu.
 
 ### Add files from Terminal
 

@@ -228,7 +228,7 @@ struct PreferencesView: View {
                         set: { shelfShortcut.apply($0) }
                     )) {
                         ForEach(ShelfShortcutChoice.allCases) { choice in
-                            Text(choice.title).tag(choice)
+                            Text(choice.rawValue).tag(choice)
                         }
                     }
                     if let error = shelfShortcut.errorMessage {
@@ -239,7 +239,7 @@ struct PreferencesView: View {
                         set: { shelfShortcut.applyClipboard($0) }
                     )) {
                         ForEach(ClipboardShortcutChoice.allCases) { choice in
-                            Text(choice.rawValue).tag(choice)
+                            Text(choice.title).tag(choice)
                         }
                     }
                     if let error = shelfShortcut.clipboardError {

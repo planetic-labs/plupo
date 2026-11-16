@@ -113,7 +113,7 @@ jobs:
           previous_tag=$(git tag --merged "$RELEASE_TAG" --sort=-version:refname | awk -v current="$RELEASE_TAG" '$0 != current && /^v[0-9]+\.[0-9]+\.[0-9]+$/ { print; exit }')
           if [[ -n "$previous_tag" ]]; then
             gh api "repos/$GH_REPO/compare/$previous_tag...$RELEASE_TAG" --paginate \
-              --jq '.commits[] | "- " + (.commit.message | split("\n")[0]) + " ([" + (.sha[0:7]) + "](" + .html_url + "))"' > commit-notes.md
+              --jq '.commits[] | (.commit.message | split("\n")[0]) as $subject | select($subject | test("^Release v[0-9]+[.][0-9]+[.][0-9]+$") | not) | "- " + $subject + " ([" + (.sha[0:7]) + "](" + .html_url + "))"' > commit-notes.md
             { printf "## Changes\n\n"; cat commit-notes.md; printf "\n**Full Changelog**: https://github.com/%s/compare/%s...%s\n\n" "$GH_REPO" "$previous_tag" "$RELEASE_TAG"; cat release-notes.md; } > combined-notes.md
             mv combined-notes.md release-notes.md
           fi

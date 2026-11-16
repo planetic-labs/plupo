@@ -12,13 +12,6 @@ enum ShelfShortcutChoice: String, CaseIterable, Identifiable {
 
     var id: Self { self }
 
-    var title: String {
-        switch self {
-        case .yoink: return "F5 (Yoink)"
-        default: return rawValue
-        }
-    }
-
     var binding: (key: UInt32, modifiers: UInt32)? {
         switch self {
         case .disabled: return nil
@@ -38,6 +31,10 @@ enum ClipboardShortcutChoice: String, CaseIterable, Identifiable {
     case disabled = "Off"
 
     var id: Self { self }
+
+    var title: String {
+        self == .doubleF5 ? "F5 twice" : rawValue
+    }
 
     var binding: (key: UInt32, modifiers: UInt32)? {
         switch self {
