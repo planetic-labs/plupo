@@ -91,6 +91,16 @@ struct WindowRegressionTests {
         expect(!points.enumerated().contains { index, x in
             shake.sample(NSPoint(x: x, y: 0), time: Double(index) * 0.1, minimumDistance: 28)
         }, "Low sensitivity should reject small shakes")
+        let simulatedScreen = NSRect(x: -1512, y: 300, width: 1512, height: 982)
+        let simulatedLeft = NSRect(x: -1512, y: 1250, width: 650, height: 32)
+        let simulatedRight = NSRect(x: -650, y: 1250, width: 650, height: 32)
+        let notchFrame = NotchDropGeometry.frame(screen: simulatedScreen, topInset: 32,
+                                                left: simulatedLeft, right: simulatedRight)
+        expect(notchFrame == NSRect(x: -870, y: 1222, width: 228, height: 60),
+               "Notch geometry should use the screen origin and leave a reachable strip below the housing")
+        expect(NotchDropGeometry.frame(screen: simulatedScreen, topInset: 0,
+                                       left: nil, right: nil) == nil,
+               "A screen without a notch must not have a drop target")
         let screenshotFolder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: screenshotFolder, withIntermediateDirectories: false)
         defer { try? FileManager.default.removeItem(at: screenshotFolder) }

@@ -28,6 +28,7 @@ class DragDetector {
     func stopMonitoring() {
         monitor?.invalidate()
         monitor = nil
+        NotchDropTarget.shared.hide()
         if mousePressLocation != nil { WindowManager.shared.disarmDragEdge() }
         mousePressLocation = nil
         shake.reset()
@@ -37,6 +38,7 @@ class DragDetector {
     private func checkDrag() {
         let isMousePressed = NSEvent.pressedMouseButtons & 1 != 0
         if !isMousePressed {
+            NotchDropTarget.shared.hide()
             guard mousePressLocation != nil else { return }
             mousePressLocation = nil
             shake.reset()
@@ -49,6 +51,8 @@ class DragDetector {
         let location = NSEvent.mouseLocation
         let origin = mousePressLocation ?? location
         mousePressLocation = origin
+        NotchDropTarget.shared.update(isDragging: isDraggingActive
+            || hypot(location.x - origin.x, location.y - origin.y) >= 4)
         if isDraggingActive {
             if PreferencesStore.shared.showOnShake {
                 if shake.sample(location, time: ProcessInfo.processInfo.systemUptime,

@@ -79,6 +79,10 @@ class PreferencesStore: ObservableObject {
         didSet { defaults.set(shakeSensitivity.rawValue, forKey: "shakeSensitivity") }
     }
 
+    @Published var dropToNotch: Bool {
+        didSet { defaults.set(dropToNotch, forKey: "dropToNotch") }
+    }
+
     @Published var keepItemsAfterDrag: Bool {
         didSet { defaults.set(keepItemsAfterDrag, forKey: "keepItemsAfterDrag") }
     }
@@ -115,6 +119,7 @@ class PreferencesStore: ObservableObject {
         self.position = ShelfPosition(rawValue: defaults.string(forKey: "position") ?? "") ?? .right
         self.alignment = ShelfAlignment(rawValue: defaults.string(forKey: "alignment") ?? "") ?? .center
         self.showBehavior = ShowBehavior(rawValue: defaults.string(forKey: "showBehavior") ?? "") ?? .dragStarts
+        self.dropToNotch = defaults.object(forKey: "dropToNotch") as? Bool ?? true
         self.showOnDragStart = defaults.object(forKey: "showOnDragStart") as? Bool ?? true
         self.shakeSensitivity = ShakeSensitivity(rawValue: defaults.string(forKey: "shakeSensitivity") ?? "") ?? .medium
         self.showOnShake = defaults.object(forKey: "showOnShake") as? Bool ?? false

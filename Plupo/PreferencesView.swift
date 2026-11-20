@@ -64,6 +64,9 @@ struct PreferencesView: View {
                                 }
                             }
                             .disabled(prefs.showBehavior != .dragStarts || !prefs.showOnShake)
+                            Toggle("Drop files near the camera notch", isOn: $prefs.dropToNotch)
+                            Text("On MacBooks with a notch, drag files to the strip just below the camera.")
+                                .font(.caption).foregroundStyle(.secondary)
 
                         }
                         .padding(.vertical, 8)
