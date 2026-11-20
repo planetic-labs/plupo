@@ -283,7 +283,8 @@ struct PreferencesView: View {
             GroupBox("Shelf gestures") {
                 VStack(spacing: 8) {
                     shortcutRow("Select multiple cards", keys: "⌘-click")
-                    shortcutRow("Move original files", keys: "⌘-drag from shelf")
+                    shortcutRow("Move original files", keys: "⌘ during drag")
+                    shortcutRow("Copy files", keys: "⌥ during drag")
                 }
                 .padding(8)
             }

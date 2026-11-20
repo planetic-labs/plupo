@@ -57,7 +57,7 @@ struct ShelfItemView: View {
         .contentShape(RoundedRectangle(cornerRadius: 10))
         .overlay(alignment: .leading) {
             NativeDragSource(item: item, viewModel: viewModel, preview: showQuickLook)
-                .help("Command-click to select multiple items. Hold Command when starting a file drag to move the original.")
+                .help("Command-click to select multiple items. While dragging originals, hold Command to move or Option to copy.")
                 // Keep native dragging away from the hover action buttons.
                 .padding(.trailing, isHovering ? 66 : 0)
         }

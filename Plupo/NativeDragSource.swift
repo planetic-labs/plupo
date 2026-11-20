@@ -24,7 +24,7 @@ struct NativeDragSource: NSViewRepresentable {
         private var mouseDownPoint: NSPoint?
         private var draggedIDs = Set<UUID>()
         private var extendsSelection = false
-        private var requestsMove = false
+        private var canMoveOriginals = false
         private var fileReferences: [UUID: NSURL] = [:]
 
         override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
@@ -63,14 +63,12 @@ struct NativeDragSource: NSViewRepresentable {
             guard !payload.isEmpty else { return }
             mouseDownPoint = nil
             draggedIDs = Set(payload.map { $0.0.id })
-            requestsMove = event.modifierFlags.contains(.command)
-                && !event.modifierFlags.contains(.option)
-                && payload.allSatisfy { entry in
-                    guard case .file(let url) = entry.0.content else { return false }
-                    let temporaryDirectory = PlupoTemporaryFiles.directory.resolvingSymlinksInPath().path
-                    return !url.resolvingSymlinksInPath().path.hasPrefix(temporaryDirectory + "/")
-                }
-            if requestsMove {
+            let temporaryDirectory = PlupoTemporaryFiles.directory.resolvingSymlinksInPath().path
+            canMoveOriginals = payload.allSatisfy { entry in
+                guard case .file(let url) = entry.0.content else { return false }
+                return !url.resolvingSymlinksInPath().path.hasPrefix(temporaryDirectory + "/")
+            }
+            if canMoveOriginals {
                 for (candidate, _) in payload {
                     if case .file(let url) = candidate.content,
                        let reference = (url as NSURL).fileReferenceURL() {
@@ -94,7 +92,8 @@ struct NativeDragSource: NSViewRepresentable {
         func draggingSession(_ session: NSDraggingSession, sourceOperationMaskFor context: NSDraggingContext) -> NSDragOperation {
             // Reordering/duplicating items inside this shelf is not a supported operation.
             guard context == .outsideApplication else { return [] }
-            return requestsMove ? [.copy, .move] : .copy
+            // AppKit filters the offered operations using the current modifier keys.
+            return canMoveOriginals ? [.copy, .move] : .copy
         }
 
         func draggingSession(_ session: NSDraggingSession, endedAt screenPoint: NSPoint, operation: NSDragOperation) {
@@ -106,7 +105,7 @@ struct NativeDragSource: NSViewRepresentable {
             }
             draggedIDs.removeAll()
             fileReferences.removeAll()
-            requestsMove = false
+            canMoveOriginals = false
             WindowManager.shared.dragDidEnd(source: "shelf")
         }
 
