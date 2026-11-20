@@ -97,9 +97,17 @@ class ShelfViewModel: ObservableObject {
         onItemsChanged?()
     }
 
-    func toggleLock(for item: ShelfItem) {
-        if let index = items.firstIndex(where: { $0.id == item.id }) {
-            items[index].isLocked.toggle()
+    func toggleLock(for item: ShelfItem, allItems: Bool = false) {
+        guard let index = items.firstIndex(where: { $0.id == item.id }) else { return }
+        let shouldLock = !items[index].isLocked
+        if allItems {
+            items = items.map { item in
+                var updated = item
+                updated.isLocked = shouldLock
+                return updated
+            }
+        } else {
+            items[index].isLocked = shouldLock
         }
     }
 

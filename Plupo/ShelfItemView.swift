@@ -95,7 +95,9 @@ struct ShelfItemView: View {
             .help("Quick Look")
             
             // Lock Button
-            Button(action: { viewModel.toggleLock(for: item) }) {
+            Button {
+                viewModel.toggleLock(for: item, allItems: NSEvent.modifierFlags.contains(.option))
+            } label: {
                 Image(systemName: item.isLocked ? "lock.fill" : "lock.open.fill")
                     .font(.system(size: 9, weight: .semibold))
                     .foregroundColor(item.isLocked ? .accentColor : .secondary)
@@ -104,7 +106,8 @@ struct ShelfItemView: View {
                     .clipShape(Circle())
             }
             .buttonStyle(.plain)
-            .help(item.isLocked ? "Unlock item" : "Lock item to keep it on shelf")
+            .help(item.isLocked ? "Unlock item. Option-click to unlock all items."
+                                : "Lock item. Option-click to lock all items.")
             
             // Remove Button
             Button(action: { viewModel.removeItem(item) }) {
