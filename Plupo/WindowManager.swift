@@ -313,9 +313,6 @@ class WindowManager: NSObject {
             createPreferencesWindow()
         }
         
-        // Switch to regular app temporarily so preferences window has a menu bar and behaves properly
-        NSApp.setActivationPolicy(.regular)
-        
         preferencesWindow?.center()
         preferencesWindow?.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
@@ -331,23 +328,12 @@ class WindowManager: NSObject {
         
         window.title = "Plupo Preferences"
         window.isReleasedWhenClosed = false
-        window.delegate = self
         
         let prefsView = PreferencesView()
             .environmentObject(PreferencesStore.shared)
         
         window.contentView = NSHostingView(rootView: prefsView)
         self.preferencesWindow = window
-    }
-}
-
-// Keep application working in accessory mode when preferences close
-extension WindowManager: NSWindowDelegate {
-    func windowWillClose(_ notification: Notification) {
-        if notification.object as? NSWindow == preferencesWindow {
-            // Switch back to accessory (background/menu-bar only) mode
-            NSApp.setActivationPolicy(.accessory)
-        }
     }
 }
 
