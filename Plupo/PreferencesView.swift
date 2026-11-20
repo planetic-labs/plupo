@@ -54,6 +54,17 @@ struct PreferencesView: View {
                                 .pickerStyle(.menu)
                             }
 
+                            Toggle("Show when a drag starts", isOn: $prefs.showOnDragStart)
+                                .disabled(prefs.showBehavior != .dragStarts)
+                            Toggle("Show when shaking while dragging", isOn: $prefs.showOnShake)
+                                .disabled(prefs.showBehavior != .dragStarts)
+                            Picker("Shake sensitivity", selection: $prefs.shakeSensitivity) {
+                                ForEach(ShakeSensitivity.allCases, id: \.self) { level in
+                                    Text(level.rawValue).tag(level)
+                                }
+                            }
+                            .disabled(prefs.showBehavior != .dragStarts || !prefs.showOnShake)
+
                         }
                         .padding(.vertical, 8)
                         .padding(.horizontal, 4)

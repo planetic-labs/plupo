@@ -87,7 +87,7 @@ class WindowManager: NSObject {
     }
 
     func armDragEdge() {
-        guard visibility.mode == .dragStarts, !visibility.desiredVisible else {
+        guard visibility.mode == .dragStarts, PreferencesStore.shared.showOnDragStart, !visibility.desiredVisible else {
             disarmDragEdge()
             return
         }
@@ -128,7 +128,12 @@ class WindowManager: NSObject {
     func dragDidBegin(source: String = "monitor") {
         cancelAutoHide()
         visibility.dragSources.insert(source)
-        if visibility.mode == .dragStarts { showShelfWindow() }
+        if visibility.mode == .dragStarts && PreferencesStore.shared.showOnDragStart { showShelfWindow() }
+    }
+
+    func dragDidShake() {
+        guard visibility.mode == .dragStarts, PreferencesStore.shared.showOnShake else { return }
+        showShelfWindow()
     }
 
     func dragDidEnd(source: String = "monitor") {

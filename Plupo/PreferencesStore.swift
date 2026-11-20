@@ -26,7 +26,21 @@ enum ShowBehavior: String, CaseIterable {
     case shortcut = "Shortcut Only"
 
     var title: String {
-        self == .shortcut ? "Manual (Menu Bar)" : rawValue
+        self == .dragStarts ? "Automatic" : (self == .shortcut ? "Manual (Menu Bar)" : rawValue)
+    }
+}
+
+enum ShakeSensitivity: String, CaseIterable {
+    case low = "Low"
+    case medium = "Medium"
+    case high = "High"
+
+    var minimumDistance: CGFloat {
+        switch self {
+        case .low: return 28
+        case .medium: return 18
+        case .high: return 10
+        }
     }
 }
 
@@ -53,6 +67,18 @@ class PreferencesStore: ObservableObject {
         didSet { defaults.set(showBehavior.rawValue, forKey: "showBehavior") }
     }
     
+    @Published var showOnDragStart: Bool {
+        didSet { defaults.set(showOnDragStart, forKey: "showOnDragStart") }
+    }
+
+    @Published var showOnShake: Bool {
+        didSet { defaults.set(showOnShake, forKey: "showOnShake") }
+    }
+
+    @Published var shakeSensitivity: ShakeSensitivity {
+        didSet { defaults.set(shakeSensitivity.rawValue, forKey: "shakeSensitivity") }
+    }
+
     @Published var keepItemsAfterDrag: Bool {
         didSet { defaults.set(keepItemsAfterDrag, forKey: "keepItemsAfterDrag") }
     }
@@ -89,6 +115,9 @@ class PreferencesStore: ObservableObject {
         self.position = ShelfPosition(rawValue: defaults.string(forKey: "position") ?? "") ?? .right
         self.alignment = ShelfAlignment(rawValue: defaults.string(forKey: "alignment") ?? "") ?? .center
         self.showBehavior = ShowBehavior(rawValue: defaults.string(forKey: "showBehavior") ?? "") ?? .dragStarts
+        self.showOnDragStart = defaults.object(forKey: "showOnDragStart") as? Bool ?? true
+        self.shakeSensitivity = ShakeSensitivity(rawValue: defaults.string(forKey: "shakeSensitivity") ?? "") ?? .medium
+        self.showOnShake = defaults.object(forKey: "showOnShake") as? Bool ?? false
         self.keepItemsAfterDrag = defaults.object(forKey: "keepItemsAfterDrag") as? Bool ?? false
         self.iconSize = IconSize(rawValue: defaults.string(forKey: "iconSize") ?? "") ?? .medium
         defaults.removeObject(forKey: "launchAtLogin")

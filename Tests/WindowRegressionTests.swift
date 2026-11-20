@@ -77,6 +77,20 @@ struct WindowRegressionTests {
         expect(model.handleDroppedProviders(statusProviders), "The menu bar must pass files to the shared import path")
         try await settle()
         expect(model.items.map(\.title) == ["Menu Bar File.pdf"], "The menu bar import must preserve the filename")
+        var shake = DragShakeGesture()
+        let points: [CGFloat] = [0, 25, 0, 25, 0]
+        let responses = points.enumerated().map { index, x in
+            shake.sample(NSPoint(x: x, y: 0), time: Double(index) * 0.1)
+        }
+        expect(responses == [false, false, false, false, true], "Three quick reversals must trigger shaking")
+        shake.reset()
+        expect(!points.enumerated().contains { index, x in
+            shake.sample(NSPoint(x: x, y: 0), time: Double(index))
+        }, "Slow reversals must not trigger shaking")
+        shake.reset()
+        expect(!points.enumerated().contains { index, x in
+            shake.sample(NSPoint(x: x, y: 0), time: Double(index) * 0.1, minimumDistance: 28)
+        }, "Low sensitivity should reject small shakes")
         let screenshotFolder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: screenshotFolder, withIntermediateDirectories: false)
         defer { try? FileManager.default.removeItem(at: screenshotFolder) }
