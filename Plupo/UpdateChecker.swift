@@ -27,9 +27,17 @@ struct PublishedRelease: Decodable {
 
     struct Asset: Decodable { let name: String }
 
+    var downloadURL: URL? {
+        guard ReleaseVersion(tag_name) != nil,
+              let asset = ["Plupo-universal.dmg", "Plupo-arm64.dmg"].first(where: { name in
+                  assets.contains { $0.name == name }
+              }) else { return nil }
+        return URL(string: "https://github.com/planetic-labs/plupo/releases/download/\(tag_name)/\(asset)")
+    }
+
     func newerVersion(than current: String) -> ReleaseVersion? {
         guard !draft, !prerelease,
-              assets.contains(where: { $0.name == "Plupo-universal.dmg" || $0.name == "Plupo-arm64.dmg" }),
+              downloadURL != nil,
               let remote = ReleaseVersion(tag_name), let installed = ReleaseVersion(current),
               remote > installed else { return nil }
         return remote
@@ -74,19 +82,27 @@ final class UpdateChecker: ObservableObject {
                 let release = try JSONDecoder().decode(PublishedRelease.self, from: data)
                 guard let current = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String,
                       ReleaseVersion(current) != nil else { throw URLError(.cannotParseResponse) }
-                if release.newerVersion(than: current) != nil {
+                if release.newerVersion(than: current) != nil, let downloadURL = release.downloadURL {
                     if !manual && defaults.string(forKey: "lastNotifiedUpdate") == release.tag_name { return }
                     // Respect a preference disabled while the request was in flight.
                     guard manual || automaticallyChecks else { return }
                     defaults.set(release.tag_name, forKey: "lastNotifiedUpdate")
                     let alert = NSAlert()
                     alert.messageText = "Plupo \(release.tag_name) is available"
-                    alert.informativeText = "You have version \(current). Open the release page to see what changed and download the update. Install it by dragging Plupo into Applications."
-                    alert.addButton(withTitle: "View Release")
+                    alert.informativeText = "You have version \(current). Download the update, open the DMG, then drag Plupo into Applications to replace your current copy."
+                    alert.addButton(withTitle: "Download Update")
+                    alert.addButton(withTitle: "View Release Notes")
                     alert.addButton(withTitle: "Later")
                     NSApp.activate(ignoringOtherApps: true)
-                    if alert.runModal() == .alertFirstButtonReturn {
+                    switch alert.runModal() {
+                    case .alertFirstButtonReturn:
+                        if !NSWorkspace.shared.open(downloadURL) {
+                            showMessage("Could not open the download", "Open the release page and download the DMG from Assets.")
+                        }
+                    case .alertSecondButtonReturn:
                         NSWorkspace.shared.open(Self.releasesURL)
+                    default:
+                        break
                     }
                 } else if manual {
                     showMessage("No newer update available", "Installed version: \(current).\nLatest published release: \(release.tag_name).")

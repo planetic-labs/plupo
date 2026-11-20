@@ -23,6 +23,9 @@ struct UpdateRegressionTests {
         try expect(release(asset: "Plupo-arm64.dmg").newerVersion(than: "0.1.0") != nil)
         try expect(release(asset: "source.zip").newerVersion(than: "0.1.0") == nil)
         try expect(release("v0.2.0-beta").newerVersion(than: "0.1.0") == nil)
+        try expect(release().downloadURL?.absoluteString ==
+                   "https://github.com/planetic-labs/plupo/releases/download/v0.2.0/Plupo-universal.dmg")
+        try expect(release(asset: "source.zip").downloadURL == nil)
         print("Passed update version and release eligibility checks")
     }
 }

@@ -67,7 +67,7 @@ Release downloads include a SHA-256 checksum. The app is built on GitHub for App
 
 ## Updates
 
-Use **Check for Updates…** in the menu bar or Preferences to find a newer release. Automatic checks are enabled by default and can be disabled in Preferences. A new version opens a release page only when you choose **View Release**; download its DMG and replace Plupo in Applications manually. Older versions without this feature need to be updated manually once.
+Use **Check for Updates…** in the menu bar or Preferences to find a newer release. Automatic checks are enabled by default and can be disabled in Preferences. When a new version is available, choose **Download Update** to download the DMG or **View Release Notes** to see what changed. Open the DMG and replace Plupo in Applications. Older versions without this feature need to be updated manually once.
 
 ## Build from Source
 
