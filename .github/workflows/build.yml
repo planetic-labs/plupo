@@ -108,6 +108,14 @@ jobs:
 
           [Apple's explanation of opening apps from unidentified developers](https://support.apple.com/102445).
 
+          If **Open Anyway** is unavailable and you trust the DMG downloaded from this GitHub release, move Plupo to Applications and run this command in Terminal:
+
+          ```sh
+          xattr -dr com.apple.quarantine /Applications/Plupo.app
+          ```
+
+          Then open Plupo from Applications. This removes the download quarantine flag from this copy of Plupo.
+
           The DMG and its SHA-256 checksum are built automatically on GitHub. No Apple account or personal signing certificate is used.
           NOTES
           previous_tag=$(git tag --merged "$RELEASE_TAG" --sort=-version:refname | awk -v current="$RELEASE_TAG" '$0 != current && /^v[0-9]+\.[0-9]+\.[0-9]+$/ { print; exit }')
