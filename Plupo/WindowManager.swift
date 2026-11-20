@@ -24,6 +24,7 @@ class WindowManager: NSObject {
     private var isAnimating = false
     private var needsUpdate = false
     private var visibility = ShelfVisibilityState()
+    private var fnShelfVisible = false
     private var subscriptions = Set<AnyCancellable>()
     private var autoHideTask: DispatchWorkItem?
     private var hideGeneration = 0
@@ -209,15 +210,22 @@ class WindowManager: NSObject {
         panel.orderFrontRegardless()
     }
     
+    func setFnShelfVisible(_ visible: Bool) {
+        guard fnShelfVisible != visible else { return }
+        fnShelfVisible = visible
+        updateShelfPosition()
+    }
+
     private func updateShelfPosition() {
         if isAnimating {
             needsUpdate = true
             return
         }
-        if visibility.desiredVisible && shelfPanel == nil { createShelfPanel() }
+        let showPanel = visibility.desiredVisible || fnShelfVisible
+        if showPanel && shelfPanel == nil { createShelfPanel() }
         guard let panel = shelfPanel else { return }
-        let target = getTargetFrame(for: getActiveScreen(), isVisibleState: visibility.desiredVisible)
-        let alpha: CGFloat = visibility.desiredVisible ? 1 : 0
+        let target = getTargetFrame(for: getActiveScreen(), isVisibleState: showPanel)
+        let alpha: CGFloat = showPanel ? 1 : 0
         guard panel.frame != target || panel.alphaValue != alpha else { return }
         isAnimating = true
         needsUpdate = false

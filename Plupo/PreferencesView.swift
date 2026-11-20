@@ -237,6 +237,8 @@ struct PreferencesView: View {
         VStack(alignment: .leading, spacing: 16) {
             GroupBox("Global") {
                 VStack(alignment: .leading, spacing: 8) {
+                    Toggle("Show shelf while holding Fn", isOn: $shelfShortcut.showShelfWhileHoldingFn)
+
                     Picker("Toggle Shelf Shortcut", selection: Binding(
                         get: { shelfShortcut.choice },
                         set: { shelfShortcut.apply($0) }

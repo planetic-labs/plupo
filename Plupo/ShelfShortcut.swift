@@ -1,3 +1,4 @@
+import AppKit
 import Carbon
 import Combine
 import Foundation
@@ -59,6 +60,33 @@ final class ShelfShortcut: ObservableObject {
     private var clipboardHotKey: EventHotKeyRef?
     private var pendingF5: Task<Void, Never>?
 
+    @Published var showShelfWhileHoldingFn = UserDefaults.standard.bool(forKey: "showShelfWhileHoldingFn") {
+        didSet {
+            UserDefaults.standard.set(showShelfWhileHoldingFn, forKey: "showShelfWhileHoldingFn")
+            refreshFnMonitor()
+        }
+    }
+    private var fnMonitor: Timer?
+
+    private func refreshFnMonitor() {
+        stopFnMonitor()
+        guard showShelfWhileHoldingFn else { return }
+        let timer = Timer(timeInterval: 0.05, repeats: true) { _ in
+            MainActor.assumeIsolated {
+                WindowManager.shared.setFnShelfVisible(NSEvent.modifierFlags.contains(.function))
+            }
+        }
+        RunLoop.main.add(timer, forMode: .common)
+        fnMonitor = timer
+    }
+
+    private func stopFnMonitor() {
+        guard let fnMonitor else { return }
+        fnMonitor.invalidate()
+        self.fnMonitor = nil
+        WindowManager.shared.setFnShelfVisible(false)
+    }
+
     private let preferenceKey = "shelfGlobalShortcut"
     private var hotKey: EventHotKeyRef?
     private var handler: EventHandlerRef?
@@ -71,6 +99,7 @@ final class ShelfShortcut: ObservableObject {
     }
 
     func start() {
+        refreshFnMonitor()
         apply(choice)
         refreshClipboardRegistration()
     }
@@ -173,6 +202,7 @@ final class ShelfShortcut: ObservableObject {
     }
 
     func stop() {
+        stopFnMonitor()
         unregisterClipboard()
         if let hotKey { UnregisterEventHotKey(hotKey) }
         if let handler { RemoveEventHandler(handler) }
