@@ -10,6 +10,11 @@ fail() { echo "Release stopped: $*" >&2; exit 1; }
 dry_run=false
 if [[ "${1:-}" == --dry-run ]]; then dry_run=true; shift; fi
 if [[ "${1:-}" == --help || "${1:-}" == -h ]]; then usage; exit 0; fi
+if [[ $# == 0 ]]; then
+  echo 'Release stopped: No version specified. Provide a version in MAJOR.MINOR.PATCH format.' >&2
+  usage >&2
+  exit 1
+fi
 [[ $# == 1 ]] || { usage >&2; exit 1; }
 version=$1
 [[ "$version" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]] || fail 'Use a version such as 0.1.3, without a v prefix or leading zeros.'
