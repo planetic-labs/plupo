@@ -22,6 +22,7 @@ class WindowManager: NSObject {
     private var windowWidth: CGFloat { shelfViewModel.usesCompactLayout ? 64 : 150 }
     private let windowHeight: CGFloat = 420
     private var isAnimating = false
+    private var shelfMoveOffset: NSPoint?
     private var needsUpdate = false
     private var visibility = ShelfVisibilityState()
     private var fnShelfVisible = false
@@ -218,7 +219,40 @@ class WindowManager: NSObject {
         updateShelfPosition()
     }
 
+    func moveShelfWithPointer() {
+        guard let panel = shelfPanel, !isAnimating else { return }
+        let pointer = NSEvent.mouseLocation
+        let offset = shelfMoveOffset ?? NSPoint(x: pointer.x - panel.frame.minX,
+                                                y: pointer.y - panel.frame.minY)
+        shelfMoveOffset = offset
+        panel.setFrameOrigin(NSPoint(x: pointer.x - offset.x, y: pointer.y - offset.y))
+    }
+
+    func finishMovingShelf() {
+        guard shelfMoveOffset != nil, let panel = shelfPanel else { return }
+        defer {
+            shelfMoveOffset = nil
+            updateShelfPosition()
+        }
+
+        moveShelfWithPointer()
+        let screen = getActiveScreen().visibleFrame
+        let prefs = PreferencesStore.shared
+        prefs.position = panel.frame.midX < screen.midX ? .left : .right
+        let anchors: [(ShelfAlignment, CGFloat)] = [
+            (.top, screen.maxY - windowHeight / 2 - 20),
+            (.center, screen.midY),
+            (.bottom, screen.minY + windowHeight / 2 + 20)
+        ]
+        if let nearest = anchors.min(by: {
+            abs($0.1 - panel.frame.midY) < abs($1.1 - panel.frame.midY)
+        }) {
+            prefs.alignment = nearest.0
+        }
+    }
+
     private func updateShelfPosition() {
+        guard shelfMoveOffset == nil else { return }
         if isAnimating {
             needsUpdate = true
             return

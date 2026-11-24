@@ -136,9 +136,13 @@ struct ShelfView: View {
                 .fixedSize(horizontal: true, vertical: false)
                 .font(.system(size: 12, weight: .bold, design: .rounded))
                 .foregroundColor(.primary.opacity(0.8))
-            
-            Spacer()
-            
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .contentShape(Rectangle())
+                .gesture(DragGesture(minimumDistance: 4)
+                    .onChanged { _ in WindowManager.shared.moveShelfWithPointer() }
+                    .onEnded { _ in WindowManager.shared.finishMovingShelf() })
+                .help("Drag to move the shelf")
+
             // Clear All Button
             if !viewModel.items.isEmpty {
                 Button(action: {
