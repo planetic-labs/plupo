@@ -7,20 +7,36 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		8820AABB0000000000000006 = {isa = PBXBuildFile; fileRef = 8820AABB0000000000000001; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, );};};
+		8820AABB0000000000000006 /* PlupoShare.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 8820AABB0000000000000001 /* PlupoShare.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		8820AABB0000000000000008 = {isa = PBXContainerItemProxy; containerPortal = 1797632E2FD449900025FC6C; proxyType = 1; remoteGlobalIDString = 8820AABB0000000000000003; remoteInfo = PlupoShare;};
+		8820AABB0000000000000008 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1797632E2FD449900025FC6C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 8820AABB0000000000000003;
+			remoteInfo = PlupoShare;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		8820AABB0000000000000005 = {isa = PBXCopyFilesBuildPhase; buildActionMask = 2147483647; dstPath = ""; dstSubfolderSpec = 13; files = (8820AABB0000000000000006, ); name = "Embed App Extensions"; runOnlyForDeploymentPostprocessing = 0;};
+		8820AABB0000000000000005 /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				8820AABB0000000000000006 /* PlupoShare.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		179763362FD449900025FC6C /* Plupo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Plupo.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		8820AABB0000000000000001 = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; path = PlupoShare.appex; sourceTree = BUILT_PRODUCTS_DIR;};
+		8820AABB0000000000000001 /* PlupoShare.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; path = PlupoShare.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -29,7 +45,11 @@
 			path = Plupo;
 			sourceTree = "<group>";
 		};
-		8820AABB0000000000000002 = {isa = PBXFileSystemSynchronizedRootGroup; path = PlupoShare; sourceTree = "<group>";};
+		8820AABB0000000000000002 /* PlupoShare */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = PlupoShare;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -46,7 +66,7 @@
 		1797632D2FD449900025FC6C = {
 			isa = PBXGroup;
 			children = (
-				8820AABB0000000000000002,
+				8820AABB0000000000000002 /* PlupoShare */,
 				179763382FD449900025FC6C /* Plupo */,
 				179763372FD449900025FC6C /* Products */,
 			);
@@ -55,7 +75,7 @@
 		179763372FD449900025FC6C /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				8820AABB0000000000000001,
+				8820AABB0000000000000001 /* PlupoShare.appex */,
 				179763362FD449900025FC6C /* Plupo.app */,
 			);
 			name = Products;
@@ -70,13 +90,13 @@
 			buildPhases = (
 				179763322FD449900025FC6C /* Sources */,
 				179763332FD449900025FC6C /* Frameworks */,
-				8820AABB0000000000000005,
+				8820AABB0000000000000005 /* Embed App Extensions */,
 				179763342FD449900025FC6C /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				8820AABB0000000000000007,
+				8820AABB0000000000000007 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				179763382FD449900025FC6C /* Plupo */,
@@ -88,16 +108,22 @@
 			productReference = 179763362FD449900025FC6C /* Plupo.app */;
 			productType = "com.apple.product-type.application";
 		};
-		8820AABB0000000000000003 = {
+		8820AABB0000000000000003 /* PlupoShare */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 8820AABB0000000000000009;
-			buildPhases = (8820AABB0000000000000004, );
-			buildRules = ();
-			dependencies = ();
-			fileSystemSynchronizedGroups = (8820AABB0000000000000002, );
+			buildConfigurationList = 8820AABB0000000000000009 /* Build configuration list for PBXNativeTarget "PlupoShare" */;
+			buildPhases = (
+				8820AABB0000000000000004 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				8820AABB0000000000000002 /* PlupoShare */,
+			);
 			name = PlupoShare;
 			productName = PlupoShare;
-			productReference = 8820AABB0000000000000001;
+			productReference = 8820AABB0000000000000001 /* PlupoShare.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
@@ -129,7 +155,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				8820AABB0000000000000003,
+				8820AABB0000000000000003 /* PlupoShare */,
 				179763352FD449900025FC6C /* Plupo */,
 			);
 		};
@@ -153,11 +179,21 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		8820AABB0000000000000004 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0;};
+		8820AABB0000000000000004 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		8820AABB0000000000000007 = {isa = PBXTargetDependency; target = 8820AABB0000000000000003; targetProxy = 8820AABB0000000000000008;};
+		8820AABB0000000000000007 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 8820AABB0000000000000003 /* PlupoShare */;
+			targetProxy = 8820AABB0000000000000008 /* PBXContainerItemProxy */;
+		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
@@ -216,10 +252,10 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				PLUPO_BUNDLE_IDENTIFIER = org.plupo.Plupo;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
+				PLUPO_BUNDLE_IDENTIFIER = org.plupo.Plupo;
 				SDKROOT = macosx;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
@@ -276,9 +312,9 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				PLUPO_BUNDLE_IDENTIFIER = org.plupo.Plupo;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
+				PLUPO_BUNDLE_IDENTIFIER = org.plupo.Plupo;
 				SDKROOT = macosx;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
@@ -296,8 +332,8 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				ENABLE_APP_SANDBOX = YES;
-				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -332,8 +368,8 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				ENABLE_APP_SANDBOX = YES;
-				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -357,7 +393,7 @@
 			};
 			name = Release;
 		};
-		8820AABB000000000000000A = {
+		8820AABB000000000000000A /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
@@ -376,7 +412,7 @@
 			};
 			name = Debug;
 		};
-		8820AABB000000000000000B = {
+		8820AABB000000000000000B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
@@ -416,7 +452,15 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		8820AABB0000000000000009 = {isa = XCConfigurationList; buildConfigurations = (8820AABB000000000000000A, 8820AABB000000000000000B, ); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release;};
+		8820AABB0000000000000009 /* Build configuration list for PBXNativeTarget "PlupoShare" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				8820AABB000000000000000A /* Debug */,
+				8820AABB000000000000000B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 /* End XCConfigurationList section */
 	};
 	rootObject = 1797632E2FD449900025FC6C /* Project object */;
