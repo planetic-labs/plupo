@@ -3,22 +3,24 @@
 set -euo pipefail
 
 usage() {
-  echo 'Usage: bash scripts/release.sh [--dry-run] MAJOR.MINOR.PATCH'
+  echo 'Usage: bash scripts/release.sh [--dry-run] [MAJOR.MINOR.PATCH]'
+  echo 'Without a version, increments the patch of the newest project version or release tag.'
   echo 'Commit your changes first. --dry-run validates without changing or publishing anything.'
 }
 fail() { echo "Release stopped: $*" >&2; exit 1; }
 dry_run=false
-if [[ "${1:-}" == --dry-run ]]; then dry_run=true; shift; fi
-if [[ "${1:-}" == --help || "${1:-}" == -h ]]; then usage; exit 0; fi
-if [[ $# == 0 ]]; then
-  echo 'Release stopped: No version specified. Provide a version in MAJOR.MINOR.PATCH format.' >&2
-  usage >&2
-  exit 1
-fi
-[[ $# == 1 ]] || { usage >&2; exit 1; }
-version=$1
-[[ "$version" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]] || fail 'Use a version such as 0.1.3, without a v prefix or leading zeros.'
-tag="v$version"
+version=
+for arg in "$@"; do
+  case "$arg" in
+    --dry-run) dry_run=true ;;
+    --help|-h) usage; exit 0 ;;
+    *)
+      [[ -z "$version" ]] || fail 'Provide only one version.'
+      [[ "$arg" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]] || fail 'Use a version such as 0.1.3, without a v prefix or leading zeros.'
+      version=$arg
+      ;;
+  esac
+done
 cd "$(dirname "$0")/.."
 for command in git python3 xcodebuild xcrun; do
   command -v "$command" >/dev/null || fail "Required command not found: $command"
@@ -35,13 +37,9 @@ remote_main=$(printf '%s\n' "$remote_refs" | awk '$2 == "refs/heads/main" {print
 [[ -n "$remote_main" ]] || fail 'origin/main is missing.'
 git cat-file -e "$remote_main^{commit}" 2>/dev/null || fail 'Fetch and update main from origin before releasing.'
 git merge-base --is-ancestor "$remote_main" HEAD || fail 'Local main is behind or diverged from origin/main. Update it first.'
-! git show-ref --verify --quiet "refs/tags/$tag" || fail "Local tag $tag already exists."
-if printf '%s\n' "$remote_refs" | awk '{print $2}' | /usr/bin/grep -Fxq "refs/tags/$tag"; then
-  fail "Remote tag $tag already exists."
-fi
 local_tags=$(git tag --list 'v*')
 # Compare numeric components rather than strings: 0.1.10 is newer than 0.1.9.
-RELEASE_VERSION="$version" RELEASE_REMOTE_REFS="$remote_refs" RELEASE_LOCAL_TAGS="$local_tags" python3 - <<'PY'
+plan=$(RELEASE_VERSION="$version" RELEASE_REMOTE_REFS="$remote_refs" RELEASE_LOCAL_TAGS="$local_tags" python3 - <<'PY'
 import os, re
 from pathlib import Path
 
@@ -49,22 +47,32 @@ def parts(value):
     return tuple(map(int, value.split('.')))
 
 version = os.environ['RELEASE_VERSION']
-target = parts(version)
 project = Path('Plupo.xcodeproj/project.pbxproj').read_text()
 current = re.findall(r'MARKETING_VERSION = ([0-9]+\.[0-9]+(?:\.[0-9]+)?);', project)
 if not current or len(set(current)) != 1:
     raise SystemExit('Release stopped: Xcode marketing versions are missing or inconsistent.')
 installed = parts(current[0])
 installed += (0,) * (3 - len(installed))
+tags = os.environ['RELEASE_LOCAL_TAGS'].splitlines()
+tags += [line.split('refs/tags/', 1)[1] for line in os.environ['RELEASE_REMOTE_REFS'].splitlines()
+         if '\trefs/tags/' in line]
+release_tags = [tag for tag in tags if re.fullmatch(r'v[0-9]+\.[0-9]+\.[0-9]+', tag)]
+if not version:
+    major, minor, patch = max([installed] + [parts(tag[1:]) for tag in release_tags])
+    version = f'{major}.{minor}.{patch + 1}'
+target = parts(version)
 if target < installed:
     raise SystemExit(f'Release stopped: {version} is older than the project version {current[0]}.')
-tags = os.environ['RELEASE_LOCAL_TAGS'].splitlines()
-tags += [line.split('\t')[-1][len('refs/tags/'):]  for line in os.environ['RELEASE_REMOTE_REFS'].splitlines() if '\trefs/tags/' in line]
-for tag in tags:
-    if re.fullmatch(r'v[0-9]+\.[0-9]+\.[0-9]+', tag) and target <= parts(tag[1:]):
+for tag in release_tags:
+    if target <= parts(tag[1:]):
         raise SystemExit(f'Release stopped: version must be newer than existing tag {tag}.')
-print(f'Release plan: project {current[0]} → {version}; publish {"v" + version}.')
+print(version)
+print(f'Release plan: project {current[0]} → {version}; publish v{version}.')
 PY
+)
+version=${plan%%$'\n'*}
+tag="v$version"
+printf '%s\n' "${plan#*$'\n'}"
 if [[ "$dry_run" == true ]]; then
   previous_tag=$(git tag --merged HEAD --sort=-version:refname | awk '/^v[0-9]+\.[0-9]+\.[0-9]+$/ && !printed { print; printed = 1 }')
   if [[ -n "$previous_tag" ]]; then

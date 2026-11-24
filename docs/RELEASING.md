@@ -17,8 +17,10 @@ The script verifies that the working tree is clean, the current branch is `main`
 To preview the commit subjects for the release notes without running tests, building, or publishing:
 
 ```sh
-bash scripts/release.sh --dry-run 0.1.3
+bash scripts/release.sh --dry-run
 ```
+
+Omit the version to increment the patch of the highest version among the Xcode project, local tags, and GitHub tags. Pass a version explicitly to choose a different release number. The `--dry-run` flag can go before or after the version.
 
 The dry run still needs network access to read remote refs. It previews the Changes section from the latest version tag merged into local HEAD and omits version-bump commits such as `Release v0.1.7`, just like the published notes. Keep local tags up to date to match GitHub’s release history. A failed verification leaves the version and tags untouched. If publication is rejected, the local release commit and tag are kept and the script prints an exact push command to retry after resolving the cause. Do not rerun the whole script with that same version: the existing local tag will correctly block it. No reset, force push, or tag deletion is performed automatically.
 

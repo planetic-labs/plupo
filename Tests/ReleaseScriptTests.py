@@ -78,6 +78,19 @@ class ReleaseScriptTests(unittest.TestCase):
         self.assert_untouched()
         self.assertFalse(self.log.exists())
 
+    def test_dry_run_increments_newest_remote_tag(self):
+        self.git('tag', 'v0.1.10')
+        self.git('push', 'origin', 'refs/tags/v0.1.10')
+        self.git('tag', '-d', 'v0.1.10')
+        result = self.run_release('--dry-run')
+        self.assertIn('publish v0.1.11', result.stdout)
+        self.assertFalse(self.log.exists())
+
+    def test_explicit_version_can_precede_dry_run_flag(self):
+        result = self.run_release('0.1.10', '--dry-run')
+        self.assertIn('publish v0.1.10', result.stdout)
+        self.assert_untouched()
+
     def test_dry_run_previews_changes_since_previous_tag(self):
         self.git('tag', 'v0.1.9')
         self.git('push', 'origin', 'refs/tags/v0.1.9')
