@@ -3,8 +3,67 @@ import Carbon
 import Combine
 import Foundation
 
+struct RecordedShortcut: Codable, Equatable {
+    let key: UInt32
+    let modifiers: UInt32
+    let character: String
+    let title: String
+
+    var appKitModifiers: NSEvent.ModifierFlags {
+        var flags: NSEvent.ModifierFlags = []
+        if modifiers & UInt32(cmdKey) != 0 { flags.insert(.command) }
+        if modifiers & UInt32(controlKey) != 0 { flags.insert(.control) }
+        if modifiers & UInt32(optionKey) != 0 { flags.insert(.option) }
+        if modifiers & UInt32(shiftKey) != 0 { flags.insert(.shift) }
+        return flags
+    }
+
+    static func record() -> Self? {
+        let dialog = NSAlert()
+        dialog.messageText = "Press a keyboard shortcut"
+        dialog.informativeText = "Press a key with Command or Control, or press a function key. Escape cancels."
+        dialog.addButton(withTitle: "Cancel")
+        var result: Self?
+        let monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+            MainActor.assumeIsolated { () -> Void in
+                if event.keyCode == kVK_Escape {
+                    NSApp.abortModal()
+                    return
+                }
+                let flags = event.modifierFlags
+                let functionNumber = event.specialKey.flatMap {
+                    (0xF704...0xF726).contains($0.rawValue) ? $0.rawValue - 0xF703 : nil
+                }
+                guard flags.contains(.command) || flags.contains(.control) || functionNumber != nil else {
+                    NSSound.beep()
+                    return
+                }
+                var mask: Int = 0
+                var label = ""
+                for (flag, bit, symbol): (NSEvent.ModifierFlags, Int, String) in [
+                    (.control, controlKey, "⌃"), (.option, optionKey, "⌥"),
+                    (.shift, shiftKey, "⇧"), (.command, cmdKey, "⌘")
+                ] where flags.contains(flag) {
+                    mask |= bit
+                    label += symbol
+                }
+                guard let character = event.charactersIgnoringModifiers, !character.isEmpty else { return }
+                let keyTitle = functionNumber.map { "F\($0)" } ?? (character == " " ? "Space" : character.uppercased())
+                result = Self(key: UInt32(event.keyCode), modifiers: UInt32(mask),
+                              character: character, title: label + keyTitle)
+                NSApp.abortModal()
+            }
+            return nil
+        }
+        defer { if let monitor { NSEvent.removeMonitor(monitor) } }
+        dialog.runModal()
+        return result
+    }
+}
+
 enum ShelfShortcutChoice: String, CaseIterable, Identifiable {
     case disabled = "Off"
+    case custom = "Custom"
     case yoink = "F5"
     case commandShiftY = "⌘⇧Y"
     case controlOptionY = "⌃⌥Y"
@@ -15,7 +74,7 @@ enum ShelfShortcutChoice: String, CaseIterable, Identifiable {
 
     var binding: (key: UInt32, modifiers: UInt32)? {
         switch self {
-        case .disabled: return nil
+        case .disabled, .custom: return nil
         case .yoink: return (UInt32(kVK_F5), 0)
         case .commandShiftY: return (UInt32(kVK_ANSI_Y), UInt32(cmdKey | shiftKey))
         case .controlOptionY: return (UInt32(kVK_ANSI_Y), UInt32(controlKey | optionKey))
@@ -30,6 +89,7 @@ enum ClipboardShortcutChoice: String, CaseIterable, Identifiable {
     case dropover = "⌥⇧A (Dropover)"
     case controlOptionA = "⌃⌥A"
     case disabled = "Off"
+    case custom = "Custom"
 
     var id: Self { self }
 
@@ -42,7 +102,23 @@ enum ClipboardShortcutChoice: String, CaseIterable, Identifiable {
         case .doubleF5: return ShelfShortcutChoice.yoink.binding
         case .dropover: return (UInt32(kVK_ANSI_A), UInt32(optionKey | shiftKey))
         case .controlOptionA: return (UInt32(kVK_ANSI_A), UInt32(controlKey | optionKey))
-        case .disabled: return nil
+        case .disabled, .custom: return nil
+        }
+    }
+}
+
+enum MenuShortcutAction: String, CaseIterable, Identifiable {
+    case toggleShelf = "Toggle Shelf"
+    case preferences = "Open Preferences"
+    case quit = "Quit Plupo"
+
+    var id: Self { self }
+
+    var defaultKey: String {
+        switch self {
+        case .toggleShelf: return "y"
+        case .preferences: return ","
+        case .quit: return "q"
         }
     }
 }
@@ -55,6 +131,55 @@ final class ShelfShortcut: ObservableObject {
 
     @Published private(set) var clipboardChoice: ClipboardShortcutChoice
     @Published private(set) var clipboardError: String?
+
+    @Published private(set) var customShelf = ShelfShortcut.loadRecorded("customShelfShortcut")
+    @Published private(set) var customClipboard = ShelfShortcut.loadRecorded("customClipboardShortcut")
+
+    private static func loadRecorded(_ key: String) -> RecordedShortcut? {
+        guard let data = UserDefaults.standard.data(forKey: key) else { return nil }
+        return try? JSONDecoder().decode(RecordedShortcut.self, from: data)
+    }
+
+    func recordCustom(clipboard: Bool) {
+        guard let shortcut = RecordedShortcut.record() else { return }
+        if clipboard {
+            let previous = customClipboard
+            customClipboard = shortcut
+            applyClipboard(.custom, rollback: { customClipboard = previous })
+            if clipboardError == nil {
+                UserDefaults.standard.set(try? JSONEncoder().encode(shortcut), forKey: "customClipboardShortcut")
+            }
+        } else {
+            let previous = customShelf
+            if choice == .custom, previous == shortcut, hotKey != nil { return }
+            customShelf = shortcut
+            apply(.custom, rebind: true)
+            if errorMessage == nil {
+                UserDefaults.standard.set(try? JSONEncoder().encode(shortcut), forKey: "customShelfShortcut")
+            } else {
+                customShelf = previous
+            }
+        }
+    }
+
+    @Published var menuShortcuts: [String: RecordedShortcut] = {
+        guard let data = UserDefaults.standard.data(forKey: "localMenuShortcuts") else { return [:] }
+        return (try? JSONDecoder().decode([String: RecordedShortcut].self, from: data)) ?? [:]
+    }() {
+        didSet {
+            UserDefaults.standard.set(try? JSONEncoder().encode(menuShortcuts), forKey: "localMenuShortcuts")
+        }
+    }
+
+    @Published var disabledMenuShortcuts = Set(UserDefaults.standard.stringArray(forKey: "disabledMenuShortcuts") ?? []) {
+        didSet { UserDefaults.standard.set(Array(disabledMenuShortcuts), forKey: "disabledMenuShortcuts") }
+    }
+
+    func recordMenuShortcut(_ action: MenuShortcutAction) {
+        guard let shortcut = RecordedShortcut.record() else { return }
+        menuShortcuts[action.rawValue] = shortcut
+        disabledMenuShortcuts.remove(action.rawValue)
+    }
 
     private let clipboardPreferenceKey = "clipboardGlobalShortcut"
     private var clipboardHotKey: EventHotKeyRef?
@@ -104,15 +229,16 @@ final class ShelfShortcut: ObservableObject {
         refreshClipboardRegistration()
     }
 
-    func apply(_ newChoice: ShelfShortcutChoice) {
+    func apply(_ newChoice: ShelfShortcutChoice, rebind: Bool = false) {
         errorMessage = nil
-        if newChoice == choice, hotKey != nil { return }
+        if !rebind, newChoice == choice, hotKey != nil { return }
 
         if newChoice == .yoink && clipboardChoice == .doubleF5 {
             unregisterClipboard()
         }
         var newHotKey: EventHotKeyRef?
-        if let binding = newChoice.binding {
+        let customBinding = customShelf.map { (key: $0.key, modifiers: $0.modifiers) }
+        if let binding = newChoice == .custom ? customBinding : newChoice.binding {
             guard installHandler() else {
                 errorMessage = "Plupo couldn’t start keyboard shortcut handling."
                 refreshClipboardRegistration()
@@ -135,12 +261,13 @@ final class ShelfShortcut: ObservableObject {
         refreshClipboardRegistration()
     }
 
-    func applyClipboard(_ newChoice: ClipboardShortcutChoice) {
+    func applyClipboard(_ newChoice: ClipboardShortcutChoice, rollback: () -> Void = {}) {
         let previous = clipboardChoice
         clipboardChoice = newChoice
         refreshClipboardRegistration()
         if let failure = clipboardError {
             clipboardChoice = previous
+            rollback()
             refreshClipboardRegistration()
             clipboardError = failure
         } else {
@@ -158,7 +285,8 @@ final class ShelfShortcut: ObservableObject {
     private func refreshClipboardRegistration() {
         unregisterClipboard()
         clipboardError = nil
-        guard let binding = clipboardChoice.binding else { return }
+        let customBinding = customClipboard.map { (key: $0.key, modifiers: $0.modifiers) }
+        guard let binding = clipboardChoice == .custom ? customBinding : clipboardChoice.binding else { return }
         if clipboardChoice == .doubleF5, choice == .yoink, hotKey != nil { return }
         if clipboardChoice == .doubleF5, choice == .yoink {
             clipboardError = "F5 is unavailable. Choose another shortcut."

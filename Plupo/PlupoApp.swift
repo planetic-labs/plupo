@@ -1,5 +1,6 @@
 import SwiftUI
 import AppKit
+import Combine
 
 @main
 struct PlupoApp: App {
@@ -17,6 +18,7 @@ struct PlupoApp: App {
 
 class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
     var statusItem: NSStatusItem?
+    private var menuShortcutSubscription: AnyCancellable?
     
     func applicationDidFinishLaunching(_ notification: Notification) {
         PlupoTemporaryFiles.cleanup()
@@ -71,6 +73,21 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
         
         for item in menu.items where !item.isSeparatorItem { item.target = self }
         statusItem?.menu = menu
+        let shortcuts = ShelfShortcut.shared
+        menuShortcutSubscription = shortcuts.$menuShortcuts.combineLatest(shortcuts.$disabledMenuShortcuts)
+            .sink { [weak menu] overrides, disabled in
+                let actions: [(MenuShortcutAction, Selector)] = [
+                    (.toggleShelf, #selector(AppDelegate.toggleShelf)),
+                    (.preferences, #selector(AppDelegate.showPreferences)),
+                    (.quit, #selector(AppDelegate.quitApp))
+                ]
+                for (action, selector) in actions {
+                    guard let item = menu?.items.first(where: { $0.action == selector }) else { continue }
+                    let custom = overrides[action.rawValue]
+                    item.keyEquivalent = disabled.contains(action.rawValue) ? "" : (custom?.character ?? action.defaultKey)
+                    item.keyEquivalentModifierMask = custom?.appKitModifiers ?? .command
+                }
+            }
     }
     
     @objc func toggleShelf() {

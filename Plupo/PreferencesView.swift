@@ -265,10 +265,11 @@ struct PreferencesView: View {
                         get: { shelfShortcut.choice },
                         set: { shelfShortcut.apply($0) }
                     )) {
-                        ForEach(ShelfShortcutChoice.allCases) { choice in
-                            Text(choice.rawValue).tag(choice)
+                        ForEach(ShelfShortcutChoice.allCases.filter { $0 != .custom || shelfShortcut.customShelf != nil }) { choice in
+                            Text(choice == .custom ? shelfShortcut.customShelf?.title ?? choice.rawValue : choice.rawValue).tag(choice)
                         }
                     }
+                    Button("Record Shelf Shortcut…") { shelfShortcut.recordCustom(clipboard: false) }
                     if let error = shelfShortcut.errorMessage {
                         Text(error).font(.caption).foregroundStyle(.red)
                     }
@@ -276,10 +277,11 @@ struct PreferencesView: View {
                         get: { shelfShortcut.clipboardChoice },
                         set: { shelfShortcut.applyClipboard($0) }
                     )) {
-                        ForEach(ClipboardShortcutChoice.allCases) { choice in
-                            Text(choice.title).tag(choice)
+                        ForEach(ClipboardShortcutChoice.allCases.filter { $0 != .custom || shelfShortcut.customClipboard != nil }) { choice in
+                            Text(choice == .custom ? shelfShortcut.customClipboard?.title ?? choice.title : choice.title).tag(choice)
                         }
                     }
+                    Button("Record Clipboard Shortcut…") { shelfShortcut.recordCustom(clipboard: true) }
                     if let error = shelfShortcut.clipboardError {
                         Text(error).font(.caption).foregroundStyle(.red)
                     }
@@ -294,9 +296,22 @@ struct PreferencesView: View {
 
             GroupBox("Menu and Preferences") {
                 VStack(spacing: 8) {
-                    shortcutRow("Toggle shelf (Plupo menu)", keys: "⌘Y")
-                    shortcutRow("Open Preferences", keys: "⌘,")
-                    shortcutRow("Quit Plupo", keys: "⌘Q")
+                    ForEach(MenuShortcutAction.allCases) { action in
+                        let disabled = shelfShortcut.disabledMenuShortcuts.contains(action.rawValue)
+                        HStack {
+                            shortcutRow(action.rawValue, keys: disabled ? "Off" :
+                                (shelfShortcut.menuShortcuts[action.rawValue]?.title ?? "⌘" + action.defaultKey.uppercased()))
+                            Menu("Change") {
+                                Button("Record…") { shelfShortcut.recordMenuShortcut(action) }
+                                Button("Off") { shelfShortcut.disabledMenuShortcuts.insert(action.rawValue) }
+                                Button("Use Default") {
+                                    shelfShortcut.menuShortcuts.removeValue(forKey: action.rawValue)
+                                    shelfShortcut.disabledMenuShortcuts.remove(action.rawValue)
+                                }
+                            }
+                            .fixedSize()
+                        }
+                    }
                     shortcutRow("Close Preferences", keys: "Return")
                 }
                 .padding(8)
