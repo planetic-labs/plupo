@@ -71,6 +71,10 @@ class PreferencesStore: ObservableObject {
         didSet { defaults.set(showOnDragStart, forKey: "showOnDragStart") }
     }
 
+    @Published var excludedDragApps: [String: String] {
+        didSet { defaults.set(excludedDragApps, forKey: "excludedDragApps") }
+    }
+
     @Published var showOnShake: Bool {
         didSet { defaults.set(showOnShake, forKey: "showOnShake") }
     }
@@ -122,6 +126,7 @@ class PreferencesStore: ObservableObject {
         self.dropToNotch = defaults.object(forKey: "dropToNotch") as? Bool ?? true
         self.showOnDragStart = defaults.object(forKey: "showOnDragStart") as? Bool ?? true
         self.shakeSensitivity = ShakeSensitivity(rawValue: defaults.string(forKey: "shakeSensitivity") ?? "") ?? .medium
+        self.excludedDragApps = defaults.dictionary(forKey: "excludedDragApps") as? [String: String] ?? [:]
         self.showOnShake = defaults.object(forKey: "showOnShake") as? Bool ?? false
         self.keepItemsAfterDrag = defaults.object(forKey: "keepItemsAfterDrag") as? Bool ?? false
         self.iconSize = IconSize(rawValue: defaults.string(forKey: "iconSize") ?? "") ?? .medium

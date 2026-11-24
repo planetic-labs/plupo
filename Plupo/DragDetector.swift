@@ -7,6 +7,7 @@ class DragDetector {
     private var monitor: Timer?
     private var lastDragChangeCount = -1
     private var mousePressLocation: NSPoint?
+    private var dragAppID: String?
     private var isDraggingActive = false
     private var shake = DragShakeGesture()
 
@@ -49,12 +50,15 @@ class DragDetector {
         }
 
         let location = NSEvent.mouseLocation
+        if mousePressLocation == nil {
+            dragAppID = NSWorkspace.shared.frontmostApplication?.bundleIdentifier
+        }
         let origin = mousePressLocation ?? location
         mousePressLocation = origin
         NotchDropTarget.shared.update(isDragging: isDraggingActive
             || hypot(location.x - origin.x, location.y - origin.y) >= 4)
         if isDraggingActive {
-            if PreferencesStore.shared.showOnShake {
+            if allowsAutomaticShow && PreferencesStore.shared.showOnShake {
                 if shake.sample(location, time: ProcessInfo.processInfo.systemUptime,
                                 minimumDistance: PreferencesStore.shared.shakeSensitivity.minimumDistance) {
                     WindowManager.shared.dragDidShake()
@@ -64,7 +68,7 @@ class DragDetector {
             }
             return
         }
-        if hypot(location.x - origin.x, location.y - origin.y) >= 4 {
+        if allowsAutomaticShow && hypot(location.x - origin.x, location.y - origin.y) >= 4 {
             WindowManager.shared.armDragEdge()
         }
         let pasteboard = NSPasteboard(name: .drag)
@@ -75,12 +79,17 @@ class DragDetector {
         beginDrag()
     }
 
+    private var allowsAutomaticShow: Bool {
+        guard let dragAppID else { return true }
+        return PreferencesStore.shared.excludedDragApps[dragAppID] == nil
+    }
+
     func beginDrag() {
         guard monitor != nil, !isDraggingActive else { return }
         isDraggingActive = true
         shake.reset()
         WindowManager.shared.disarmDragEdge()
-        WindowManager.shared.dragDidBegin()
+        WindowManager.shared.dragDidBegin(allowAutomaticShow: allowsAutomaticShow)
     }
 
     private func endDrag() {

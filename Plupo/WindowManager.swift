@@ -126,10 +126,12 @@ class WindowManager: NSObject {
         return panel
     }
 
-    func dragDidBegin(source: String = "monitor") {
+    func dragDidBegin(source: String = "monitor", allowAutomaticShow: Bool = true) {
         cancelAutoHide()
         visibility.dragSources.insert(source)
-        if visibility.mode == .dragStarts && PreferencesStore.shared.showOnDragStart { showShelfWindow() }
+        if allowAutomaticShow && visibility.mode == .dragStarts && PreferencesStore.shared.showOnDragStart {
+            showShelfWindow()
+        }
     }
 
     func dragDidShake() {

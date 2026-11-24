@@ -7,6 +7,7 @@
 
 import SwiftUI
 import ServiceManagement
+import UniformTypeIdentifiers
 
 struct PreferencesView: View {
     @EnvironmentObject var prefs: PreferencesStore
@@ -71,6 +72,27 @@ struct PreferencesView: View {
                         }
                         .padding(.vertical, 8)
                         .padding(.horizontal, 4)
+                    }
+                    GroupBox("Excluded Apps") {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Skip automatic shelf activation when a drag starts in these apps.")
+                                .font(.caption).foregroundStyle(.secondary)
+                            ForEach(prefs.excludedDragApps.keys.sorted(), id: \.self) { id in
+                                HStack {
+                                    Text(prefs.excludedDragApps[id] ?? id)
+                                    Spacer()
+                                    Button {
+                                        prefs.excludedDragApps.removeValue(forKey: id)
+                                    } label: {
+                                        Image(systemName: "minus.circle")
+                                    }
+                                    .accessibilityLabel("Remove \(prefs.excludedDragApps[id] ?? id)")
+                                }
+                            }
+                            Button("Add App…", action: addExcludedDragApp)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(8)
                     }
                     GroupBox(label: Text("Items & Dragging").font(.system(size: 11, weight: .bold))) {
                         VStack(alignment: .leading, spacing: 12) {
@@ -289,6 +311,15 @@ struct PreferencesView: View {
                 .padding(8)
             }
         }
+    }
+
+    private func addExcludedDragApp() {
+        let panel = NSOpenPanel()
+        panel.allowedContentTypes = [.applicationBundle]
+        panel.directoryURL = URL(fileURLWithPath: "/Applications", isDirectory: true)
+        guard panel.runModal() == .OK, let url = panel.url,
+              let bundle = Bundle(url: url), let id = bundle.bundleIdentifier else { return }
+        prefs.excludedDragApps[id] = url.deletingPathExtension().lastPathComponent
     }
 
     private func shortcutRow(_ action: String, keys: String) -> some View {
