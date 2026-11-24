@@ -18,6 +18,7 @@ struct PlupoApp: App {
 
 class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
     var statusItem: NSStatusItem?
+    private lazy var savedShelf = ShelfPersistence(model: WindowManager.shared.shelfViewModel)
     private var menuShortcutSubscription: AnyCancellable?
     
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -34,6 +35,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
         
         // Initialize visibility subscriptions, including the saved mode.
         _ = WindowManager.shared
+        _ = savedShelf
         ShelfShortcut.shared.start()
         ScreenshotMonitor.shared.restore()
         ScreenshotMonitor.downloads.restore()
@@ -41,10 +43,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
     }
     
     func application(_ application: NSApplication, open urls: [URL]) {
+        _ = savedShelf
         WindowManager.shared.addOpenedFiles(urls)
     }
 
     func applicationWillTerminate(_ notification: Notification) {
+        savedShelf.close()
         ShelfShortcut.shared.stop()
         ScreenshotMonitor.downloads.stop()
         ScreenshotMonitor.shared.stop()
@@ -65,6 +69,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
         menu.addItem(NSMenuItem(title: "Toggle Shelf", action: #selector(toggleShelf), keyEquivalent: "y"))
         menu.addItem(NSMenuItem(title: "Add from Clipboard", action: #selector(addFromClipboard), keyEquivalent: ""))
         menu.addItem(NSMenuItem(title: "Restore Last Removed", action: #selector(restoreLastRemoved), keyEquivalent: ""))
+        menu.addItem(NSMenuItem(title: "Remember Shelf Between Launches", action: #selector(toggleSavedShelf), keyEquivalent: ""))
         menu.addItem(NSMenuItem.separator())
         menu.addItem(NSMenuItem(title: "Check for Updates…", action: #selector(checkForUpdates), keyEquivalent: ""))
         menu.addItem(NSMenuItem(title: "Preferences...", action: #selector(showPreferences), keyEquivalent: ","))
@@ -103,7 +108,21 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
         }
     }
 
+    @objc private func toggleSavedShelf() {
+        do {
+            try savedShelf.setEnabled(!savedShelf.isEnabled)
+        } catch {
+            let alert = NSAlert()
+            alert.messageText = "Could not remove the saved shelf"
+            alert.informativeText = "Shelf saving is still enabled."
+            alert.runModal()
+        }
+    }
+
     func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
+        if menuItem.action == #selector(toggleSavedShelf) {
+            menuItem.state = savedShelf.isEnabled ? .on : .off
+        }
         if menuItem.action == #selector(restoreLastRemoved) {
             return WindowManager.shared.shelfViewModel.canRestoreLastRemoved
         }

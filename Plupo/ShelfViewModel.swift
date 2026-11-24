@@ -14,7 +14,7 @@ class ShelfViewModel: ObservableObject {
             expandedStacks.formIntersection(stacks.map(\.id))
         }
     }
-    struct Stack: Identifiable {
+    struct Stack: Identifiable, Codable {
         let id: UUID
         let members: [UUID]
     }
@@ -91,6 +91,16 @@ class ShelfViewModel: ObservableObject {
     var onDropFinished: (() -> Void)?
 
     var isLoadingDrop: Bool { pendingDrops > 0 }
+
+    func restoreSavedItems(_ saved: [ShelfItem], stacks savedStacks: [Stack]) {
+        items.insert(contentsOf: saved, at: 0)
+        let ids = Set(saved.map(\.id))
+        stacks.insert(contentsOf: savedStacks.compactMap { stack in
+            let members = stack.members.filter { ids.contains($0) }
+            return members.count > 1 ? Stack(id: stack.id, members: members) : nil
+        }, at: 0)
+        onItemsChanged?()
+    }
 
     func addItems(_ newItems: [ShelfItem]) {
         items.append(contentsOf: newItems)
