@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		8820AABB0000000000000006 /* PlupoShare.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 8820AABB0000000000000001 /* PlupoShare.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		8820AABB0000000000000006 /* PlupoShare.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 8820AABB0000000000000001 /* PlupoShare.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -21,15 +21,15 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		8820AABB0000000000000005 /* Embed App Extensions */ = {
+		8820AABB0000000000000005 /* Embed Foundation Extensions */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				8820AABB0000000000000006 /* PlupoShare.appex in Embed App Extensions */,
+				8820AABB0000000000000006 /* PlupoShare.appex in Embed Foundation Extensions */,
 			);
-			name = "Embed App Extensions";
+			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
@@ -90,7 +90,7 @@
 			buildPhases = (
 				179763322FD449900025FC6C /* Sources */,
 				179763332FD449900025FC6C /* Frameworks */,
-				8820AABB0000000000000005 /* Embed App Extensions */,
+				8820AABB0000000000000005 /* Embed Foundation Extensions */,
 				179763342FD449900025FC6C /* Resources */,
 			);
 			buildRules = (
@@ -134,7 +134,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 2630;
-				LastUpgradeCheck = 2700;
+				LastUpgradeCheck = 2720;
 				TargetAttributes = {
 					179763352FD449900025FC6C = {
 						CreatedOnToolsVersion = 26.3;
