@@ -84,6 +84,13 @@ class DragDetector {
         return PreferencesStore.shared.excludedDragApps[dragAppID] == nil
     }
 
+    func invokePointerShelfShortcut() {
+        guard NSEvent.pressedMouseButtons & 1 != 0 else { return }
+        checkDrag()
+        guard isDraggingActive else { return }
+        WindowManager.shared.showDropShelfNearPointer()
+    }
+
     func reachedScreenEdge() {
         guard allowsAutomaticShow else { return }
         beginDrag()

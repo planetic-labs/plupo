@@ -50,6 +50,8 @@ struct PreferencesView: View {
                                 .disabled(prefs.showBehavior != .dragStarts)
                             Toggle("Show when shaking while dragging", isOn: $prefs.showOnShake)
                                 .disabled(prefs.showBehavior != .dragStarts)
+                            Toggle("Show near pointer when shaking", isOn: $prefs.showNearPointerOnShake)
+                                .disabled(prefs.showBehavior != .dragStarts || !prefs.showOnShake)
                             Picker("Shake sensitivity", selection: $prefs.shakeSensitivity) {
                                 ForEach(ShakeSensitivity.allCases, id: \.self) { level in
                                     Text(level.rawValue).tag(level)
@@ -274,6 +276,15 @@ struct PreferencesView: View {
                     }
                     Button("Record Clipboard Shortcut…") { shelfShortcut.recordCustom(clipboard: true) }
                     if let error = shelfShortcut.clipboardError {
+                        Text(error).font(.caption).foregroundStyle(.red)
+                    }
+                    HStack {
+                        shortcutRow("Show near pointer during drag", keys: shelfShortcut.pointerShortcut?.title ?? "Off")
+                        Button("Record…") { shelfShortcut.recordPointerShortcut() }
+                        Button("Off") { shelfShortcut.clearPointerShortcut() }
+                            .disabled(shelfShortcut.pointerShortcut == nil)
+                    }
+                    if let error = shelfShortcut.pointerShortcutError {
                         Text(error).font(.caption).foregroundStyle(.red)
                     }
                     if shelfShortcut.choice == .yoink || shelfShortcut.clipboardChoice == .doubleF5 {

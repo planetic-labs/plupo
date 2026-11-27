@@ -23,6 +23,7 @@ class WindowManager: NSObject {
     private let windowHeight: CGFloat = 420
     private var isAnimating = false
     private var shelfMoveOffset: NSPoint?
+    private var pointerShelfOrigin: NSPoint?
     private var needsUpdate = false
     private var visibility = ShelfVisibilityState()
     private var fnShelfVisible = false
@@ -51,6 +52,7 @@ class WindowManager: NSObject {
             guard let self else { return }
             self.cancelAutoHide()
             self.refreshVisibilityInputs()
+            self.pointerShelfOrigin = nil
             self.visibility.apply(mode: mode)
             self.updateShelfPosition()
         }.store(in: &subscriptions)
@@ -76,16 +78,21 @@ class WindowManager: NSObject {
     private func scheduleAutoHide() {
         cancelAutoHide()
         refreshVisibilityInputs()
-        guard visibility.canAutoHide else { return }
+        guard canAutoHideShelf else { return }
         let generation = hideGeneration
         let task = DispatchWorkItem { [weak self] in
             guard let self, generation == self.hideGeneration else { return }
             self.refreshVisibilityInputs()
-            guard self.visibility.canAutoHide else { return }
+            guard self.canAutoHideShelf else { return }
             self.hideShelfWindow()
         }
         autoHideTask = task
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: task)
+    }
+
+    private var canAutoHideShelf: Bool {
+        visibility.canAutoHide || (pointerShelfOrigin != nil && visibility.dragSources.isEmpty
+            && shelfViewModel.usesCompactLayout && !shelfViewModel.isLoadingDrop)
     }
 
     func armDragEdge() {
@@ -136,14 +143,39 @@ class WindowManager: NSObject {
     }
 
     func dragDidReachScreenEdge() {
-        guard visibility.mode == .dragStarts, PreferencesStore.shared.showNearScreenEdge else { return }
+        guard pointerShelfOrigin == nil, visibility.mode == .dragStarts,
+              PreferencesStore.shared.showNearScreenEdge else { return }
         disarmDragEdge()
         showShelfWindow()
     }
 
     func dragDidShake() {
-        guard visibility.mode == .dragStarts, PreferencesStore.shared.showOnShake else { return }
-        showShelfWindow()
+        let prefs = PreferencesStore.shared
+        guard visibility.mode == .dragStarts, prefs.showOnShake else { return }
+        if prefs.showNearPointerOnShake {
+            showDropShelfNearPointer()
+        } else {
+            showShelfWindow()
+        }
+    }
+
+    func showDropShelfNearPointer() {
+        guard pointerShelfOrigin == nil else { return }
+        guard visibility.mode != .always, shelfViewModel.usesCompactLayout, !shelfViewModel.isLoadingDrop else {
+            showShelfWindow()
+            return
+        }
+        let pointer = NSEvent.mouseLocation
+        let visible = getActiveScreen().visibleFrame
+        let x = max(visible.minX, min(pointer.x - windowWidth / 2, visible.maxX - windowWidth))
+        let below = pointer.y - windowHeight - 16
+        let preferredY = below < visible.minY ? pointer.y + 16 : below
+        let y = max(visible.minY, min(preferredY, visible.maxY - windowHeight))
+        pointerShelfOrigin = NSPoint(x: x, y: y)
+        disarmDragEdge()
+        cancelAutoHide()
+        visibility.desiredVisible = true
+        updateShelfPosition()
     }
 
     func dragDidEnd(source: String = "monitor") {
@@ -171,12 +203,14 @@ class WindowManager: NSObject {
     }
 
     func showShelfWindow() {
+        pointerShelfOrigin = nil
         cancelAutoHide()
         visibility.desiredVisible = true
         updateShelfPosition()
     }
 
     func hideShelfWindow() {
+        pointerShelfOrigin = nil
         cancelAutoHide()
         visibility.desiredVisible = false
         updateShelfPosition()
@@ -257,7 +291,11 @@ class WindowManager: NSObject {
         let showPanel = visibility.desiredVisible || fnShelfVisible
         if showPanel && shelfPanel == nil { createShelfPanel() }
         guard let panel = shelfPanel else { return }
-        let target = getTargetFrame(for: getActiveScreen(), isVisibleState: showPanel)
+        var target = getTargetFrame(for: getActiveScreen(), isVisibleState: showPanel)
+        if showPanel, let pointerShelfOrigin {
+            target.origin = pointerShelfOrigin
+            if panel.alphaValue == 0 { panel.setFrame(target, display: false) }
+        }
         let alpha: CGFloat = showPanel ? 1 : 0
         guard panel.frame != target || panel.alphaValue != alpha else { return }
         isAnimating = true

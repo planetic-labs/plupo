@@ -81,6 +81,10 @@ class PreferencesStore: ObservableObject {
         didSet { defaults.set(excludedDragApps, forKey: "excludedDragApps") }
     }
 
+    @Published var showNearPointerOnShake = UserDefaults.standard.bool(forKey: "showNearPointerOnShake") {
+        didSet { defaults.set(showNearPointerOnShake, forKey: "showNearPointerOnShake") }
+    }
+
     @Published var showOnShake: Bool {
         didSet { defaults.set(showOnShake, forKey: "showOnShake") }
     }

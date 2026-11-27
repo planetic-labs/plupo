@@ -181,6 +181,43 @@ final class ShelfShortcut: ObservableObject {
         disabledMenuShortcuts.remove(action.rawValue)
     }
 
+    @Published private(set) var pointerShortcut = ShelfShortcut.loadRecorded("pointerShelfShortcut")
+    @Published private(set) var pointerShortcutError: String?
+    private var pointerHotKey: EventHotKeyRef?
+
+    func recordPointerShortcut() {
+        guard let shortcut = RecordedShortcut.record() else { return }
+        if registerPointerShortcut(shortcut) {
+            pointerShortcut = shortcut
+            UserDefaults.standard.set(try? JSONEncoder().encode(shortcut), forKey: "pointerShelfShortcut")
+        }
+    }
+
+    func clearPointerShortcut() {
+        if let pointerHotKey { UnregisterEventHotKey(pointerHotKey) }
+        pointerHotKey = nil
+        pointerShortcut = nil
+        pointerShortcutError = nil
+        UserDefaults.standard.removeObject(forKey: "pointerShelfShortcut")
+    }
+
+    @discardableResult
+    private func registerPointerShortcut(_ shortcut: RecordedShortcut) -> Bool {
+        pointerShortcutError = nil
+        if pointerShortcut == shortcut, pointerHotKey != nil { return true }
+        var registered: EventHotKeyRef?
+        let id = EventHotKeyID(signature: 0x504C5550, id: 3)
+        guard installHandler(),
+              RegisterEventHotKey(shortcut.key, shortcut.modifiers, id, GetApplicationEventTarget(), 0, &registered) == noErr,
+              let registered else {
+            pointerShortcutError = "This shortcut is unavailable. Choose a different one."
+            return false
+        }
+        if let pointerHotKey { UnregisterEventHotKey(pointerHotKey) }
+        pointerHotKey = registered
+        return true
+    }
+
     private let clipboardPreferenceKey = "clipboardGlobalShortcut"
     private var clipboardHotKey: EventHotKeyRef?
     private var pendingF5: Task<Void, Never>?
@@ -224,6 +261,7 @@ final class ShelfShortcut: ObservableObject {
     }
 
     func start() {
+        defer { if let pointerShortcut { registerPointerShortcut(pointerShortcut) } }
         refreshFnMonitor()
         apply(choice)
         refreshClipboardRegistration()
@@ -306,6 +344,10 @@ final class ShelfShortcut: ObservableObject {
     }
 
     private func handleHotKey(_ id: UInt32) {
+        if id == 3 {
+            if pointerHotKey != nil { DragDetector.shared.invokePointerShelfShortcut() }
+            return
+        }
         let togglesShelf = id == 1
         guard togglesShelf ? hotKey != nil : clipboardHotKey != nil else { return }
         let isF5 = togglesShelf ? choice == .yoink : clipboardChoice == .doubleF5
@@ -330,6 +372,8 @@ final class ShelfShortcut: ObservableObject {
     }
 
     func stop() {
+        if let pointerHotKey { UnregisterEventHotKey(pointerHotKey) }
+        pointerHotKey = nil
         stopFnMonitor()
         unregisterClipboard()
         if let hotKey { UnregisterEventHotKey(hotKey) }
@@ -347,7 +391,7 @@ final class ShelfShortcut: ObservableObject {
             let status = GetEventParameter(event, EventParamName(kEventParamDirectObject),
                                            EventParamType(typeEventHotKeyID), nil,
                                            MemoryLayout<EventHotKeyID>.size, nil, &id)
-            guard status == noErr, id.signature == 0x504C5550, (id.id == 1 || id.id == 2) else {
+            guard status == noErr, id.signature == 0x504C5550, (1...3).contains(id.id) else {
                 return OSStatus(eventNotHandledErr)
             }
             let hotKeyID = id.id
