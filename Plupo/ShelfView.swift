@@ -19,77 +19,85 @@ struct ShelfView: View {
             VisualEffectView(material: .hudWindow, blendingMode: .behindWindow, state: .active)
                 .cornerRadius(12)
             
-            VStack(spacing: 0) {
-                // Header (App Name / Controls)
-                headerView
-                    .padding(.horizontal, 10)
-                    .padding(.top, 10)
-                    .padding(.bottom, 6)
+            if viewModel.isPointerDropTarget {
+                Image(systemName: "square.and.arrow.down")
+                    .font(.system(size: 25, weight: .medium))
+                    .foregroundStyle(isTargeted ? Color.accentColor : Color.primary)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .accessibilityLabel("Drop onto Plupo")
+            } else {
+                VStack(spacing: 0) {
+                    // Header (App Name / Controls)
+                    headerView
+                        .padding(.horizontal, 10)
+                        .padding(.top, 10)
+                        .padding(.bottom, 6)
                 
-                Divider()
-                    .background(Color.primary.opacity(0.1))
+                    Divider()
+                        .background(Color.primary.opacity(0.1))
                 
-                // Content area
-                if viewModel.items.isEmpty {
-                    placeholderView
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else {
-                    ScrollView(.vertical, showsIndicators: false) {
-                        ScrollViewReader { proxy in
-                            LazyVStack(spacing: 8) {
-                                ForEach(viewModel.items) { item in
-                                    if let stack = viewModel.stacks.first(where: { $0.members.contains(item.id) }) {
-                                        if stack.members.first == item.id {
-                                            stackHeader(stack, first: item)
-                                                .id(stack.id)
-                                        }
-                                        if viewModel.expandedStacks.contains(stack.id) {
+                    // Content area
+                    if viewModel.items.isEmpty {
+                        placeholderView
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    } else {
+                        ScrollView(.vertical, showsIndicators: false) {
+                            ScrollViewReader { proxy in
+                                LazyVStack(spacing: 8) {
+                                    ForEach(viewModel.items) { item in
+                                        if let stack = viewModel.stacks.first(where: { $0.members.contains(item.id) }) {
+                                            if stack.members.first == item.id {
+                                                stackHeader(stack, first: item)
+                                                    .id(stack.id)
+                                            }
+                                            if viewModel.expandedStacks.contains(stack.id) {
+                                                ShelfItemView(item: item, viewModel: viewModel)
+                                                    .padding(.leading, 8)
+                                                    .id(item.id)
+                                            }
+                                        } else {
                                             ShelfItemView(item: item, viewModel: viewModel)
-                                                .padding(.leading, 8)
                                                 .id(item.id)
                                         }
-                                    } else {
-                                        ShelfItemView(item: item, viewModel: viewModel)
-                                            .id(item.id)
                                     }
                                 }
-                            }
-                            .padding(8)
-                            .onChange(of: viewModel.items.count) {
-                                // Auto scroll to latest item
-                                if let lastItem = viewModel.items.last {
-                                    withAnimation(.easeOut(duration: 0.2)) {
-                                        let stack = viewModel.stacks.first { $0.members.contains(lastItem.id) }
-                                        let target = stack.flatMap {
-                                            viewModel.expandedStacks.contains($0.id) ? nil : $0.id
-                                        } ?? lastItem.id
-                                        proxy.scrollTo(target, anchor: .bottom)
+                                .padding(8)
+                                .onChange(of: viewModel.items.count) {
+                                    // Auto scroll to latest item
+                                    if let lastItem = viewModel.items.last {
+                                        withAnimation(.easeOut(duration: 0.2)) {
+                                            let stack = viewModel.stacks.first { $0.members.contains(lastItem.id) }
+                                            let target = stack.flatMap {
+                                                viewModel.expandedStacks.contains($0.id) ? nil : $0.id
+                                            } ?? lastItem.id
+                                            proxy.scrollTo(target, anchor: .bottom)
+                                        }
                                     }
                                 }
                             }
                         }
                     }
-                }
                 
-                Divider()
-                    .background(Color.primary.opacity(0.1))
+                    Divider()
+                        .background(Color.primary.opacity(0.1))
                 
-                if let error = viewModel.dropError {
-                    HStack(alignment: .top) {
-                        Text(error).font(.caption2).foregroundStyle(.secondary)
-                        Button { viewModel.dismissDropError() } label: {
-                            Image(systemName: "xmark")
+                    if let error = viewModel.dropError {
+                        HStack(alignment: .top) {
+                            Text(error).font(.caption2).foregroundStyle(.secondary)
+                            Button { viewModel.dismissDropError() } label: {
+                                Image(systemName: "xmark")
+                            }
+                            .buttonStyle(.plain)
+                            .help("Dismiss message")
                         }
-                        .buttonStyle(.plain)
-                        .help("Dismiss message")
+                        .padding(8)
                     }
-                    .padding(8)
-                }
 
-                // Footer (Action Controls)
-                footerView
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 8)
+                    // Footer (Action Controls)
+                    footerView
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 8)
+                }
             }
         }
         .edgesIgnoringSafeArea(.all)

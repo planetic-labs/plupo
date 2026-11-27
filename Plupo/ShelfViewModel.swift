@@ -82,6 +82,7 @@ class ShelfViewModel: ObservableObject {
     }
 
     @Published private(set) var selectedIDs = Set<UUID>()
+    @Published var isPointerDropTarget = false
     @Published private(set) var dropError: String?
     private var pendingDrops = 0
     var usesCompactLayout: Bool { items.isEmpty && dropError == nil }

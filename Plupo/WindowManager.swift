@@ -23,7 +23,10 @@ class WindowManager: NSObject {
     private let windowHeight: CGFloat = 420
     private var isAnimating = false
     private var shelfMoveOffset: NSPoint?
-    private var pointerShelfOrigin: NSPoint?
+    private let pointerShelfSize: CGFloat = 84
+    private var pointerShelfOrigin: NSPoint? {
+        didSet { shelfViewModel.isPointerDropTarget = pointerShelfOrigin != nil }
+    }
     private var needsUpdate = false
     private var visibility = ShelfVisibilityState()
     private var fnShelfVisible = false
@@ -167,10 +170,10 @@ class WindowManager: NSObject {
         }
         let pointer = NSEvent.mouseLocation
         let visible = getActiveScreen().visibleFrame
-        let x = max(visible.minX, min(pointer.x - windowWidth / 2, visible.maxX - windowWidth))
-        let below = pointer.y - windowHeight - 16
+        let x = max(visible.minX, min(pointer.x - pointerShelfSize / 2, visible.maxX - pointerShelfSize))
+        let below = pointer.y - pointerShelfSize - 16
         let preferredY = below < visible.minY ? pointer.y + 16 : below
-        let y = max(visible.minY, min(preferredY, visible.maxY - windowHeight))
+        let y = max(visible.minY, min(preferredY, visible.maxY - pointerShelfSize))
         pointerShelfOrigin = NSPoint(x: x, y: y)
         disarmDragEdge()
         cancelAutoHide()
@@ -293,7 +296,7 @@ class WindowManager: NSObject {
         guard let panel = shelfPanel else { return }
         var target = getTargetFrame(for: getActiveScreen(), isVisibleState: showPanel)
         if showPanel, let pointerShelfOrigin {
-            target.origin = pointerShelfOrigin
+            target = NSRect(origin: pointerShelfOrigin, size: NSSize(width: pointerShelfSize, height: pointerShelfSize))
             if panel.alphaValue == 0 { panel.setFrame(target, display: false) }
         }
         let alpha: CGFloat = showPanel ? 1 : 0
