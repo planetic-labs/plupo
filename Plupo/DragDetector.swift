@@ -57,6 +57,9 @@ class DragDetector {
         mousePressLocation = origin
         NotchDropTarget.shared.update(isDragging: isDraggingActive
             || hypot(location.x - origin.x, location.y - origin.y) >= 4)
+        if allowsAutomaticShow && (isDraggingActive || hypot(location.x - origin.x, location.y - origin.y) >= 4) {
+            WindowManager.shared.armDragEdge()
+        }
         if isDraggingActive {
             if allowsAutomaticShow && PreferencesStore.shared.showOnShake {
                 if shake.sample(location, time: ProcessInfo.processInfo.systemUptime,
@@ -67,9 +70,6 @@ class DragDetector {
                 shake.reset()
             }
             return
-        }
-        if allowsAutomaticShow && hypot(location.x - origin.x, location.y - origin.y) >= 4 {
-            WindowManager.shared.armDragEdge()
         }
         let pasteboard = NSPasteboard(name: .drag)
         let changeCount = pasteboard.changeCount
@@ -84,7 +84,13 @@ class DragDetector {
         return PreferencesStore.shared.excludedDragApps[dragAppID] == nil
     }
 
-    func beginDrag() {
+    func reachedScreenEdge() {
+        guard allowsAutomaticShow else { return }
+        beginDrag()
+        WindowManager.shared.dragDidReachScreenEdge()
+    }
+
+    private func beginDrag() {
         guard monitor != nil, !isDraggingActive else { return }
         isDraggingActive = true
         shake.reset()

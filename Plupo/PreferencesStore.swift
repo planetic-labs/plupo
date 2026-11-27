@@ -69,6 +69,10 @@ class PreferencesStore: ObservableObject {
         didSet { defaults.set(showBehavior.rawValue, forKey: "showBehavior") }
     }
     
+    @Published var showNearScreenEdge: Bool {
+        didSet { defaults.set(showNearScreenEdge, forKey: "showNearScreenEdge") }
+    }
+
     @Published var showOnDragStart: Bool {
         didSet { defaults.set(showOnDragStart, forKey: "showOnDragStart") }
     }
@@ -127,12 +131,16 @@ class PreferencesStore: ObservableObject {
         self.legacyAlignment = ShelfAlignment(rawValue: defaults.string(forKey: "alignment") ?? "") ?? .center
         self.showBehavior = ShowBehavior(rawValue: defaults.string(forKey: "showBehavior") ?? "") ?? .dragStarts
         self.dropToNotch = defaults.object(forKey: "dropToNotch") as? Bool ?? true
+        let edgeActivation = defaults.object(forKey: "showNearScreenEdge") as? Bool
+            ?? defaults.object(forKey: "showOnDragStart") as? Bool ?? true
+        self.showNearScreenEdge = edgeActivation
         self.showOnDragStart = defaults.object(forKey: "showOnDragStart") as? Bool ?? true
         self.shakeSensitivity = ShakeSensitivity(rawValue: defaults.string(forKey: "shakeSensitivity") ?? "") ?? .medium
         self.excludedDragApps = defaults.dictionary(forKey: "excludedDragApps") as? [String: String] ?? [:]
         self.showOnShake = defaults.object(forKey: "showOnShake") as? Bool ?? false
         self.keepItemsAfterDrag = defaults.object(forKey: "keepItemsAfterDrag") as? Bool ?? false
         self.iconSize = IconSize(rawValue: defaults.string(forKey: "iconSize") ?? "") ?? .medium
+        defaults.set(edgeActivation, forKey: "showNearScreenEdge")
         defaults.removeObject(forKey: "launchAtLogin")
         refreshLoginStatus()
     }

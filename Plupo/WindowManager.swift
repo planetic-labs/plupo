@@ -89,7 +89,7 @@ class WindowManager: NSObject {
     }
 
     func armDragEdge() {
-        guard visibility.mode == .dragStarts, PreferencesStore.shared.showOnDragStart, !visibility.desiredVisible else {
+        guard visibility.mode == .dragStarts, PreferencesStore.shared.showNearScreenEdge, !visibility.desiredVisible else {
             disarmDragEdge()
             return
         }
@@ -133,6 +133,12 @@ class WindowManager: NSObject {
         if allowAutomaticShow && visibility.mode == .dragStarts && PreferencesStore.shared.showOnDragStart {
             showShelfWindow()
         }
+    }
+
+    func dragDidReachScreenEdge() {
+        guard visibility.mode == .dragStarts, PreferencesStore.shared.showNearScreenEdge else { return }
+        disarmDragEdge()
+        showShelfWindow()
     }
 
     func dragDidShake() {
@@ -370,7 +376,7 @@ private final class DragEdgeView: NSView {
         // Wait until AppKit finishes dispatching the entry before replacing the destination.
         DispatchQueue.main.async {
             guard NSEvent.pressedMouseButtons & 1 != 0 else { return }
-            DragDetector.shared.beginDrag()
+            DragDetector.shared.reachedScreenEdge()
         }
         return []
     }

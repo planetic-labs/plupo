@@ -46,6 +46,8 @@ struct PreferencesView: View {
 
                             Toggle("Show when a drag starts", isOn: $prefs.showOnDragStart)
                                 .disabled(prefs.showBehavior != .dragStarts)
+                            Toggle("Show near screen edge", isOn: $prefs.showNearScreenEdge)
+                                .disabled(prefs.showBehavior != .dragStarts)
                             Toggle("Show when shaking while dragging", isOn: $prefs.showOnShake)
                                 .disabled(prefs.showBehavior != .dragStarts)
                             Picker("Shake sensitivity", selection: $prefs.shakeSensitivity) {
