@@ -14,7 +14,7 @@ enum ShelfPosition: String, CaseIterable {
     case right = "Right"
 }
 
-enum ShelfAlignment: String, CaseIterable {
+enum ShelfAlignment: String {
     case top = "Top"
     case center = "Center"
     case bottom = "Bottom"
@@ -59,10 +59,12 @@ class PreferencesStore: ObservableObject {
         didSet { defaults.set(position.rawValue, forKey: "position") }
     }
     
-    @Published var alignment: ShelfAlignment {
-        didSet { defaults.set(alignment.rawValue, forKey: "alignment") }
+    let legacyAlignment: ShelfAlignment
+    var shelfVerticalOffset: CGFloat? {
+        didSet { defaults.set(shelfVerticalOffset.map { Double($0) }, forKey: "shelfVerticalOffset") }
     }
-    
+
+
     @Published var showBehavior: ShowBehavior {
         didSet { defaults.set(showBehavior.rawValue, forKey: "showBehavior") }
     }
@@ -121,7 +123,8 @@ class PreferencesStore: ObservableObject {
 
     private init() {
         self.position = ShelfPosition(rawValue: defaults.string(forKey: "position") ?? "") ?? .right
-        self.alignment = ShelfAlignment(rawValue: defaults.string(forKey: "alignment") ?? "") ?? .center
+        self.shelfVerticalOffset = (defaults.object(forKey: "shelfVerticalOffset") as? Double).map { CGFloat($0) }
+        self.legacyAlignment = ShelfAlignment(rawValue: defaults.string(forKey: "alignment") ?? "") ?? .center
         self.showBehavior = ShowBehavior(rawValue: defaults.string(forKey: "showBehavior") ?? "") ?? .dragStarts
         self.dropToNotch = defaults.object(forKey: "dropToNotch") as? Bool ?? true
         self.showOnDragStart = defaults.object(forKey: "showOnDragStart") as? Bool ?? true

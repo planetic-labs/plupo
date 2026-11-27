@@ -54,7 +54,7 @@ class WindowManager: NSObject {
             self.visibility.apply(mode: mode)
             self.updateShelfPosition()
         }.store(in: &subscriptions)
-        PreferencesStore.shared.$position.combineLatest(PreferencesStore.shared.$alignment)
+        PreferencesStore.shared.$position.removeDuplicates()
             .dropFirst().sink { [weak self] _ in
                 // Published emits before the new value has been stored.
                 DispatchQueue.main.async { self?.updateShelfPosition() }
@@ -239,16 +239,7 @@ class WindowManager: NSObject {
         let screen = getActiveScreen().visibleFrame
         let prefs = PreferencesStore.shared
         prefs.position = panel.frame.midX < screen.midX ? .left : .right
-        let anchors: [(ShelfAlignment, CGFloat)] = [
-            (.top, screen.maxY - windowHeight / 2 - 20),
-            (.center, screen.midY),
-            (.bottom, screen.minY + windowHeight / 2 + 20)
-        ]
-        if let nearest = anchors.min(by: {
-            abs($0.1 - panel.frame.midY) < abs($1.1 - panel.frame.midY)
-        }) {
-            prefs.alignment = nearest.0
-        }
+        prefs.shelfVerticalOffset = panel.frame.midY - screen.midY
     }
 
     private func updateShelfPosition() {
@@ -282,7 +273,7 @@ class WindowManager: NSObject {
         let screenFrame = screen.visibleFrame
         
         var x: CGFloat = 0
-        var y: CGFloat = 0
+        let y: CGFloat
         
         // Calculate X Position
         if prefs.position == .left {
@@ -299,16 +290,17 @@ class WindowManager: NSObject {
             }
         }
         
-        // Calculate Y Position
-        switch prefs.alignment {
-        case .top:
-            y = screenFrame.maxY - windowHeight - 20
-        case .center:
-            y = screenFrame.minY + (screenFrame.height - windowHeight) / 2
-        case .bottom:
-            y = screenFrame.minY + 20
+        if let offset = prefs.shelfVerticalOffset {
+            let origin = screenFrame.midY - windowHeight / 2 + offset
+            y = max(screenFrame.minY, min(origin, screenFrame.maxY - windowHeight))
+        } else {
+            switch prefs.legacyAlignment {
+            case .top: y = screenFrame.maxY - windowHeight - 20
+            case .center: y = screenFrame.midY - windowHeight / 2
+            case .bottom: y = screenFrame.minY + 20
+            }
         }
-        
+
         return NSRect(x: x, y: y, width: windowWidth, height: windowHeight)
     }
     

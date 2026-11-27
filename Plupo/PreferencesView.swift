@@ -34,17 +34,6 @@ struct PreferencesView: View {
                             }
 
                             HStack {
-                                Text("Alignment:")
-                                    .frame(width: 110, alignment: .leading)
-                                Picker("", selection: $prefs.alignment) {
-                                    ForEach(ShelfAlignment.allCases, id: \.self) { align in
-                                        Text(align.rawValue).tag(align)
-                                    }
-                                }
-                                .pickerStyle(.segmented)
-                            }
-
-                            HStack {
                                 Text("Show Shelf:")
                                     .frame(width: 110, alignment: .leading)
                                 Picker("", selection: $prefs.showBehavior) {
