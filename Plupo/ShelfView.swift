@@ -34,8 +34,6 @@ struct ShelfView: View {
                         .padding(.top, 10)
                         .padding(.bottom, 6)
                 
-                    Divider()
-                        .background(Color.primary.opacity(0.1))
                 
                     // Content area
                     if viewModel.items.isEmpty {
@@ -79,8 +77,6 @@ struct ShelfView: View {
                         }
                     }
                 
-                    Divider()
-                        .background(Color.primary.opacity(0.1))
                 
                     if let error = viewModel.dropError {
                         HStack(alignment: .top) {
