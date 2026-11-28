@@ -99,7 +99,7 @@ class WindowManager: NSObject {
     }
 
     func armDragEdge() {
-        guard visibility.mode == .dragStarts, PreferencesStore.shared.showNearScreenEdge, !visibility.desiredVisible else {
+        guard visibility.mode == .dragStarts, PreferencesStore.shared.showNearScreenEdge, !visibility.desiredVisible, !fnShelfVisible else {
             disarmDragEdge()
             return
         }
@@ -206,6 +206,7 @@ class WindowManager: NSObject {
     }
 
     func showShelfWindow() {
+        disarmDragEdge()
         pointerShelfOrigin = nil
         cancelAutoHide()
         visibility.desiredVisible = true
@@ -242,7 +243,9 @@ class WindowManager: NSObject {
         let shelfView = ShelfView(viewModel: shelfViewModel)
             .environmentObject(PreferencesStore.shared)
         
-        let hostingView = NSHostingView(rootView: shelfView)
+        let hostingView = ShelfDropHostingView(rootView: shelfView)
+        hostingView.shelfModel = shelfViewModel
+        hostingView.registerForDraggedTypes(Array(Set(hostingView.registeredDraggedTypes + [.fileURL])))
         hostingView.frame = NSRect(x: 0, y: 0, width: windowWidth, height: windowHeight)
         panel.contentView = hostingView
         
@@ -259,6 +262,7 @@ class WindowManager: NSObject {
     func setFnShelfVisible(_ visible: Bool) {
         guard fnShelfVisible != visible else { return }
         fnShelfVisible = visible
+        if visible { disarmDragEdge() }
         updateShelfPosition()
     }
 
@@ -409,6 +413,46 @@ class WindowManager: NSObject {
         
         window.contentView = NSHostingView(rootView: prefsView)
         self.preferencesWindow = window
+    }
+}
+
+// Receive Finder file URLs at the AppKit boundary even when SwiftUI swaps shelf layouts.
+private final class ShelfDropHostingView<Content: View>: NSHostingView<Content> {
+    weak var shelfModel: ShelfViewModel?
+
+    override func draggingEntered(_ sender: any NSDraggingInfo) -> NSDragOperation {
+        if acceptsFiles(sender) {
+            shelfModel?.isNativeFileDropTargeted = true
+            return .copy
+        }
+        return super.draggingEntered(sender)
+    }
+
+    override func draggingUpdated(_ sender: any NSDraggingInfo) -> NSDragOperation {
+        if acceptsFiles(sender) {
+            shelfModel?.isNativeFileDropTargeted = true
+            return .copy
+        }
+        shelfModel?.isNativeFileDropTargeted = false
+        return super.draggingUpdated(sender)
+    }
+
+    override func draggingExited(_ sender: (any NSDraggingInfo)?) {
+        shelfModel?.isNativeFileDropTargeted = false
+        super.draggingExited(sender)
+    }
+
+    override func performDragOperation(_ sender: any NSDraggingInfo) -> Bool {
+        shelfModel?.isNativeFileDropTargeted = false
+        guard acceptsFiles(sender) else { return super.performDragOperation(sender) }
+        let providers = StatusItemDropView.providers(from: sender.draggingPasteboard)
+        return shelfModel?.handleDroppedProviders(providers) ?? false
+    }
+
+    private func acceptsFiles(_ sender: any NSDraggingInfo) -> Bool {
+        !(sender.draggingSource is NativeDragSource.DragView)
+            && sender.draggingSourceOperationMask.contains(.copy)
+            && sender.draggingPasteboard.availableType(from: [.fileURL]) != nil
     }
 }
 

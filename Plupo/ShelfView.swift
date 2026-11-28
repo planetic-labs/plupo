@@ -10,7 +10,8 @@ import UniformTypeIdentifiers
 
 struct ShelfView: View {
     @ObservedObject var viewModel: ShelfViewModel
-    @State private var isTargeted = false
+    @State private var isSwiftUIDropTargeted = false
+    private var isTargeted: Bool { isSwiftUIDropTargeted || viewModel.isNativeFileDropTargeted }
     @EnvironmentObject var prefs: PreferencesStore
     
     var body: some View {
@@ -100,14 +101,16 @@ struct ShelfView: View {
                 }
             }
         }
+        .contentShape(Rectangle())
         .edgesIgnoringSafeArea(.all)
         .overlay(
             // Highlight border when dragging files over Plupo
             RoundedRectangle(cornerRadius: 12)
                 .stroke(isTargeted ? Color.accentColor : Color.primary.opacity(0.12), lineWidth: isTargeted ? 2 : 1)
+                .allowsHitTesting(false)
         )
         // Set up drop destination
-        .onDrop(of: [.item, .fileURL, .url, .plainText], isTargeted: $isTargeted) { providers in
+        .onDrop(of: [.item, .fileURL, .url, .plainText], isTargeted: $isSwiftUIDropTargeted) { providers in
             return viewModel.handleDroppedProviders(providers)
         }
     }
