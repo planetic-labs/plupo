@@ -101,6 +101,20 @@ struct WindowRegressionTests {
         expect(NotchDropGeometry.frame(screen: simulatedScreen, topInset: 0,
                                        left: nil, right: nil) == nil,
                "A screen without a notch must not have a drop target")
+        manager.showDropShelfNearPointer()
+        let square = NSApp.windows.compactMap { $0 as? NSPanel }.first {
+            $0 !== panel && $0.isVisible && $0.frame.size == NSSize(width: 84, height: 84)
+        }
+        expect(square != nil && !panel.isVisible, "The cursor target must use a separate panel")
+        expect(manager.shelfViewModel.handleDroppedProviders(statusProviders), "The first drop must start importing")
+        try await settle()
+        expect(square?.isVisible == false && panel.isVisible && panel.frame.width == 150,
+               "Completing the first drop must restore the normal shelf window")
+        expect(manager.shelfViewModel.handleDroppedProviders(statusProviders), "A second drop must start importing")
+        try await settle()
+        expect(manager.shelfViewModel.items.count == 2, "Both drops must reach the shelf")
+        manager.shelfViewModel.clearAll()
+
         let screenshotFolder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: screenshotFolder, withIntermediateDirectories: false)
         defer { try? FileManager.default.removeItem(at: screenshotFolder) }

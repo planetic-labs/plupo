@@ -10,8 +10,8 @@ import UniformTypeIdentifiers
 
 struct ShelfView: View {
     @ObservedObject var viewModel: ShelfViewModel
-    @State private var isSwiftUIDropTargeted = false
-    private var isTargeted: Bool { isSwiftUIDropTargeted || viewModel.isNativeFileDropTargeted }
+    var isPointerDropTarget = false
+    @State private var isTargeted = false
     @EnvironmentObject var prefs: PreferencesStore
     
     var body: some View {
@@ -20,7 +20,7 @@ struct ShelfView: View {
             VisualEffectView(material: .hudWindow, blendingMode: .behindWindow, state: .active)
                 .cornerRadius(12)
             
-            if viewModel.isPointerDropTarget {
+            if isPointerDropTarget {
                 Image(systemName: "square.and.arrow.down")
                     .font(.system(size: 25, weight: .medium))
                     .foregroundStyle(isTargeted ? Color.accentColor : Color.primary)
@@ -110,7 +110,7 @@ struct ShelfView: View {
                 .allowsHitTesting(false)
         )
         // Set up drop destination
-        .onDrop(of: [.item, .fileURL, .url, .plainText], isTargeted: $isSwiftUIDropTargeted) { providers in
+        .onDrop(of: [.item, .fileURL, .url, .plainText], isTargeted: $isTargeted) { providers in
             return viewModel.handleDroppedProviders(providers)
         }
     }

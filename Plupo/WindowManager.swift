@@ -24,9 +24,7 @@ class WindowManager: NSObject {
     private var isAnimating = false
     private var shelfMoveOffset: NSPoint?
     private let pointerShelfSize: CGFloat = 84
-    private var pointerShelfOrigin: NSPoint? {
-        didSet { shelfViewModel.isPointerDropTarget = pointerShelfOrigin != nil }
-    }
+    private var pointerShelfPanel: NSPanel?
     private var needsUpdate = false
     private var visibility = ShelfVisibilityState()
     private var fnShelfVisible = false
@@ -55,7 +53,7 @@ class WindowManager: NSObject {
             guard let self else { return }
             self.cancelAutoHide()
             self.refreshVisibilityInputs()
-            self.pointerShelfOrigin = nil
+            self.dismissPointerShelf()
             self.visibility.apply(mode: mode)
             self.updateShelfPosition()
         }.store(in: &subscriptions)
@@ -94,12 +92,12 @@ class WindowManager: NSObject {
     }
 
     private var canAutoHideShelf: Bool {
-        visibility.canAutoHide || (pointerShelfOrigin != nil && visibility.dragSources.isEmpty
+        visibility.canAutoHide || (pointerShelfPanel != nil && visibility.dragSources.isEmpty
             && shelfViewModel.usesCompactLayout && !shelfViewModel.isLoadingDrop)
     }
 
     func armDragEdge() {
-        guard visibility.mode == .dragStarts, PreferencesStore.shared.showNearScreenEdge, !visibility.desiredVisible, !fnShelfVisible else {
+        guard visibility.mode == .dragStarts, PreferencesStore.shared.showNearScreenEdge, !visibility.desiredVisible, !fnShelfVisible, pointerShelfPanel == nil else {
             disarmDragEdge()
             return
         }
@@ -146,7 +144,7 @@ class WindowManager: NSObject {
     }
 
     func dragDidReachScreenEdge() {
-        guard pointerShelfOrigin == nil, visibility.mode == .dragStarts,
+        guard pointerShelfPanel == nil, visibility.mode == .dragStarts,
               PreferencesStore.shared.showNearScreenEdge else { return }
         disarmDragEdge()
         showShelfWindow()
@@ -163,7 +161,7 @@ class WindowManager: NSObject {
     }
 
     func showDropShelfNearPointer() {
-        guard pointerShelfOrigin == nil else { return }
+        guard pointerShelfPanel == nil else { return }
         guard visibility.mode != .always, shelfViewModel.usesCompactLayout, !shelfViewModel.isLoadingDrop else {
             showShelfWindow()
             return
@@ -174,11 +172,13 @@ class WindowManager: NSObject {
         let below = pointer.y - pointerShelfSize - 16
         let preferredY = below < visible.minY ? pointer.y + 16 : below
         let y = max(visible.minY, min(preferredY, visible.maxY - pointerShelfSize))
-        pointerShelfOrigin = NSPoint(x: x, y: y)
+        let frame = NSRect(x: x, y: y, width: pointerShelfSize, height: pointerShelfSize)
+        let panel = makeShelfPanel(frame: frame, isPointerDropTarget: true)
+        pointerShelfPanel = panel
         disarmDragEdge()
         cancelAutoHide()
-        visibility.desiredVisible = true
-        updateShelfPosition()
+        shelfPanel?.orderOut(nil)
+        panel.orderFrontRegardless()
     }
 
     func dragDidEnd(source: String = "monitor") {
@@ -207,14 +207,23 @@ class WindowManager: NSObject {
 
     func showShelfWindow() {
         disarmDragEdge()
-        pointerShelfOrigin = nil
+        if let pointerShelfPanel {
+            let frame = pointerShelfPanel.frame
+            dismissPointerShelf()
+            if shelfPanel == nil { createShelfPanel() }
+            if let shelfPanel {
+                shelfPanel.setFrame(frame, display: true)
+                shelfPanel.alphaValue = 1
+                shelfPanel.orderFrontRegardless()
+            }
+        }
         cancelAutoHide()
         visibility.desiredVisible = true
         updateShelfPosition()
     }
 
     func hideShelfWindow() {
-        pointerShelfOrigin = nil
+        dismissPointerShelf()
         cancelAutoHide()
         visibility.desiredVisible = false
         updateShelfPosition()
@@ -224,41 +233,36 @@ class WindowManager: NSObject {
         visibility.desiredVisible ? hideShelfWindow() : showShelfWindow()
     }
 
+    private func dismissPointerShelf() {
+        pointerShelfPanel?.orderOut(nil)
+        pointerShelfPanel = nil
+    }
+
     private func createShelfPanel() {
-        let panel = NSPanel(
-            contentRect: NSRect(x: 0, y: 0, width: windowWidth, height: windowHeight),
-            styleMask: [.borderless, .nonactivatingPanel],
-            backing: .buffered,
-            defer: false
-        )
-        
+        let frame = getTargetFrame(for: getActiveScreen(), isVisibleState: false)
+        let panel = makeShelfPanel(frame: frame, isPointerDropTarget: false)
+        panel.alphaValue = 0
+        shelfPanel = panel
+        panel.orderFrontRegardless()
+    }
+
+    private func makeShelfPanel(frame: NSRect, isPointerDropTarget: Bool) -> NSPanel {
+        let panel = NSPanel(contentRect: frame, styleMask: [.borderless, .nonactivatingPanel],
+                            backing: .buffered, defer: false)
         panel.level = .floating
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         panel.isOpaque = false
         panel.backgroundColor = .clear
         panel.hasShadow = true
-        panel.ignoresMouseEvents = false
-        
-        // Host the SwiftUI View inside the panel
-        let shelfView = ShelfView(viewModel: shelfViewModel)
+        let content = ShelfView(viewModel: shelfViewModel, isPointerDropTarget: isPointerDropTarget)
             .environmentObject(PreferencesStore.shared)
-        
-        let hostingView = ShelfDropHostingView(rootView: shelfView)
-        hostingView.shelfModel = shelfViewModel
-        hostingView.registerForDraggedTypes(Array(Set(hostingView.registeredDraggedTypes + [.fileURL])))
-        hostingView.frame = NSRect(x: 0, y: 0, width: windowWidth, height: windowHeight)
+        let hostingView = NSHostingView(rootView: content)
+        hostingView.sizingOptions = []
         panel.contentView = hostingView
-        
-        self.shelfPanel = panel
-        
-        // Position it hidden initially and show it immediately to avoid reentrant drag logs later
-        let screen = getActiveScreen()
-        let hiddenFrame = getTargetFrame(for: screen, isVisibleState: false)
-        panel.setFrame(hiddenFrame, display: true)
-        panel.alphaValue = 0.0
-        panel.orderFrontRegardless()
+        panel.setFrame(frame, display: false)
+        return panel
     }
-    
+
     func setFnShelfVisible(_ visible: Bool) {
         guard fnShelfVisible != visible else { return }
         fnShelfVisible = visible
@@ -290,7 +294,7 @@ class WindowManager: NSObject {
     }
 
     private func updateShelfPosition() {
-        guard shelfMoveOffset == nil else { return }
+        guard shelfMoveOffset == nil, pointerShelfPanel == nil else { return }
         if isAnimating {
             needsUpdate = true
             return
@@ -298,11 +302,8 @@ class WindowManager: NSObject {
         let showPanel = visibility.desiredVisible || fnShelfVisible
         if showPanel && shelfPanel == nil { createShelfPanel() }
         guard let panel = shelfPanel else { return }
-        var target = getTargetFrame(for: getActiveScreen(), isVisibleState: showPanel)
-        if showPanel, let pointerShelfOrigin {
-            target = NSRect(origin: pointerShelfOrigin, size: NSSize(width: pointerShelfSize, height: pointerShelfSize))
-            if panel.alphaValue == 0 { panel.setFrame(target, display: false) }
-        }
+        let target = getTargetFrame(for: getActiveScreen(), isVisibleState: showPanel)
+        if showPanel && !panel.isVisible { panel.orderFrontRegardless() }
         let alpha: CGFloat = showPanel ? 1 : 0
         guard panel.frame != target || panel.alphaValue != alpha else { return }
         isAnimating = true
@@ -413,46 +414,6 @@ class WindowManager: NSObject {
         
         window.contentView = NSHostingView(rootView: prefsView)
         self.preferencesWindow = window
-    }
-}
-
-// Receive Finder file URLs at the AppKit boundary even when SwiftUI swaps shelf layouts.
-private final class ShelfDropHostingView<Content: View>: NSHostingView<Content> {
-    weak var shelfModel: ShelfViewModel?
-
-    override func draggingEntered(_ sender: any NSDraggingInfo) -> NSDragOperation {
-        if acceptsFiles(sender) {
-            shelfModel?.isNativeFileDropTargeted = true
-            return .copy
-        }
-        return super.draggingEntered(sender)
-    }
-
-    override func draggingUpdated(_ sender: any NSDraggingInfo) -> NSDragOperation {
-        if acceptsFiles(sender) {
-            shelfModel?.isNativeFileDropTargeted = true
-            return .copy
-        }
-        shelfModel?.isNativeFileDropTargeted = false
-        return super.draggingUpdated(sender)
-    }
-
-    override func draggingExited(_ sender: (any NSDraggingInfo)?) {
-        shelfModel?.isNativeFileDropTargeted = false
-        super.draggingExited(sender)
-    }
-
-    override func performDragOperation(_ sender: any NSDraggingInfo) -> Bool {
-        shelfModel?.isNativeFileDropTargeted = false
-        guard acceptsFiles(sender) else { return super.performDragOperation(sender) }
-        let providers = StatusItemDropView.providers(from: sender.draggingPasteboard)
-        return shelfModel?.handleDroppedProviders(providers) ?? false
-    }
-
-    private func acceptsFiles(_ sender: any NSDraggingInfo) -> Bool {
-        !(sender.draggingSource is NativeDragSource.DragView)
-            && sender.draggingSourceOperationMask.contains(.copy)
-            && sender.draggingPasteboard.availableType(from: [.fileURL]) != nil
     }
 }
 
